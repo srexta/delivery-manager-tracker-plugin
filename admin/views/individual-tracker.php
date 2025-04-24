@@ -9,22 +9,18 @@
 $utilities = new DMTP_Utilities();
 $reports = new DMTP_Reports();
 
-// Get available developers from Settings Page
-$developers_from_settings = array();
-if (function_exists('have_rows') && have_rows('dmtp_teams', 'option')) {
+// Get available teams from Settings Page
+$teams = array();
+if (function_exists('get_field') && have_rows('dmtp_teams', 'option')) {
     while (have_rows('dmtp_teams', 'option')) : the_row();
-        if (have_rows('team_members')) {
-            while (have_rows('team_members')) : the_row();
-                $name = get_sub_field('member_name');
-                if ($name && !in_array($name, $developers_from_settings)) { // Avoid duplicates
-                    $developers_from_settings[] = $name;
-                }
-            endwhile;
+        $team_name = get_sub_field('team_name');
+        if ($team_name) {
+            $teams[] = $team_name;
         }
     endwhile;
-    sort($developers_from_settings);
+    sort($teams);
+    reset_rows(); // Important after looping options repeater
 }
-
 
 // Get available sprints
 $sprint_args = array(
@@ -36,6 +32,7 @@ $sprint_args = array(
 $sprints = get_posts($sprint_args);
 
 // Get selected filters (use name for developer)
+$selected_team_name = isset($_GET['team_name']) ? sanitize_text_field($_GET['team_name']) : '';
 $selected_developer_name = isset($_GET['developer_name']) ? sanitize_text_field($_GET['developer_name']) : '';
 $selected_sprint = isset($_GET['sprint_id']) ? intval($_GET['sprint_id']) : 0;
 
@@ -50,17 +47,30 @@ $selected_sprint = isset($_GET['sprint_id']) ? intval($_GET['sprint_id']) : 0;
         <form method="get">
             <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>" />
             
-            <label for="developer_name"><?php esc_html_e('Select Developer:', 'delivery-manager-tracking-plugin'); ?></label>
-            <select id="developer_name" name="developer_name">
-                <option value=""><?php esc_html_e('-- Select Developer --', 'delivery-manager-tracking-plugin'); ?></option>
-                <?php foreach ($developers_from_settings as $name) : ?>
-                    <option value="<?php echo esc_attr($name); ?>" <?php selected($selected_developer_name, $name); ?>>
-                        <?php echo esc_html($name); ?>
+            <label for="team_name"><?php esc_html_e('Select Team:', 'delivery-manager-tracking-plugin'); ?></label>
+            <select id="dmtp_team_name" name="team_name">
+                <option value=""><?php esc_html_e('-- Select Team --', 'delivery-manager-tracking-plugin'); ?></option>
+                <?php foreach ($teams as $team) : ?>
+                    <option value="<?php echo esc_attr($team); ?>" <?php selected($selected_team_name, $team); ?>>
+                        <?php echo esc_html($team); ?>
                     </option>
                 <?php endforeach; ?>
-                 <?php if (empty($developers_from_settings)): ?>
-                    <option value="" disabled><?php esc_html_e('No developers defined in Settings', 'delivery-manager-tracking-plugin'); ?></option>
+                 <?php if (empty($teams)): ?>
+                    <option value="" disabled><?php esc_html_e('No teams defined in Settings', 'delivery-manager-tracking-plugin'); ?></option>
                  <?php endif; ?>
+            </select>
+            
+            <label for="developer_name"><?php esc_html_e('Select Developer:', 'delivery-manager-tracking-plugin'); ?></label>
+            <select id="dmtp_developer_name" name="developer_name" disabled>
+                <option value=""><?php esc_html_e('-- Select Team First --', 'delivery-manager-tracking-plugin'); ?></option>
+                <?php 
+                // Pre-select if filters are set (e.g., on page load after submit)
+                if ($selected_team_name && $selected_developer_name) {
+                    // We will still need JS to load the *other* developers from the selected team,
+                    // but we add the currently selected one here so it shows correctly on reload.
+                    echo '<option value="' . esc_attr($selected_developer_name) . '" selected>' . esc_html($selected_developer_name) . '</option>';
+                } 
+                ?>
             </select>
             
             <label for="sprint_id"><?php esc_html_e('Select Sprint:', 'delivery-manager-tracking-plugin'); ?></label>
@@ -144,7 +154,6 @@ $selected_sprint = isset($_GET['sprint_id']) ? intval($_GET['sprint_id']) : 0;
             
             <!-- Export buttons (using developer name now) -->
             <div class="dmtp-export" style="margin-top: 20px;">
-                <button data-developer-name="<?php echo esc_attr($selected_developer_name); ?>" data-format="json" class="button dmtp-export-developer"><?php esc_html_e('Export Developer Performance History (JSON)', 'delivery-manager-tracking-plugin'); ?></button>
                 <button data-developer-name="<?php echo esc_attr($selected_developer_name); ?>" data-format="csv" class="button dmtp-export-developer"><?php esc_html_e('Export Developer Performance History (CSV)', 'delivery-manager-tracking-plugin'); ?></button>
             </div>
 

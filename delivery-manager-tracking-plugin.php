@@ -24,6 +24,41 @@ if (!defined('WPINC')) {
     die;
 }
 
+/**
+ * Check if ACF or ACF PRO is active.
+ * @return bool True if ACF or ACF PRO is active, false otherwise.
+ */
+function dmtp_is_acf_active() {
+    // Check for ACF PRO or the free version
+    if ( class_exists('ACF') ) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Displays an admin notice if ACF is not active.
+ */
+function dmtp_acf_not_active_notice() {
+    ?>
+    <div class="notice notice-error is-dismissible">
+        <p><?php
+            esc_html_e('The Delivery Manager Tracking Plugin requires Advanced Custom Fields (ACF) or ACF PRO to be installed and activated. Please install and activate ACF to use this plugin.', 'delivery-manager-tracking-plugin');
+            // Optionally, provide a link to the ACF plugin page
+            // printf(' <a href="%s" target="_blank">%s</a>', esc_url('https://wordpress.org/plugins/advanced-custom-fields/'), esc_html__('Get ACF here', 'delivery-manager-tracking-plugin'));
+        ?></p>
+    </div>
+    <?php
+}
+
+// Hook the notice function if ACF is not active
+if (!dmtp_is_acf_active()) {
+    add_action('admin_notices', 'dmtp_acf_not_active_notice');
+
+    // Optionally, prevent further execution if ACF is required for basic functionality
+    // return; // Uncomment this if the plugin absolutely cannot run without ACF
+}
+
 // Define plugin constants
 define('DMTP_VERSION', '1.0.0');
 define('DMTP_PLUGIN_DIR', plugin_dir_path(__FILE__));
@@ -34,8 +69,25 @@ define('DMTP_PLUGIN_BASENAME', plugin_basename(__FILE__));
  * The code that runs during plugin activation.
  */
 function dmtp_activate() {
+    // Check for ACF on activation as well
+    if (!dmtp_is_acf_active()) {
+        // Optionally deactivate the plugin immediately
+        deactivate_plugins(plugin_basename(__FILE__));
+        // Trigger an admin notice about the deactivation
+        add_action('admin_notices', function() {
+            ?>
+            <div class="notice notice-error">
+                <p><?php esc_html_e('Delivery Manager Tracking Plugin requires ACF or ACF PRO and has been deactivated because it is not active.', 'delivery-manager-tracking-plugin'); ?></p>
+            </div>
+            <?php
+            // Remove the standard "Plugin activated." notice
+            if (isset($_GET['activate'])) {
+                unset($_GET['activate']);
+            }
+        });
+        return; // Stop activation process
+    }
     // Activation tasks
-    // Flush rewrite rules after registering custom post types
     flush_rewrite_rules();
 }
 
@@ -50,17 +102,21 @@ function dmtp_deactivate() {
 register_activation_hook(__FILE__, 'dmtp_activate');
 register_deactivation_hook(__FILE__, 'dmtp_deactivate');
 
-/**
- * Require the loader file which will handle including all other classes.
- */
-require_once DMTP_PLUGIN_DIR . 'includes/class-dmtp-loader.php';
+// --- Load the plugin only if ACF is active ---
+if (dmtp_is_acf_active()) {
 
-/**
- * Begins execution of the plugin.
- */
-function dmtp_run() {
-    $plugin = new DMTP_Loader();
-    $plugin->run();
-}
+    /**
+     * Require the loader file which will handle including all other classes.
+     */
+    require_once DMTP_PLUGIN_DIR . 'includes/class-dmtp-loader.php';
 
-dmtp_run(); 
+    /**
+     * Begins execution of the plugin.
+     */
+    function dmtp_run() {
+        $plugin = new DMTP_Loader();
+        $plugin->run();
+    }
+
+    dmtp_run();
+} // End ACF check 

@@ -96,11 +96,17 @@ if (!class_exists('DMTP_Loader')) {
             $this->add_action('wp_ajax_dmtp_get_sprint_data', $ajax_handlers, 'get_sprint_data');
             $this->add_action('wp_ajax_dmtp_update_sprint', $ajax_handlers, 'update_sprint');
             $this->add_action('wp_ajax_dmtp_export_data', $ajax_handlers, 'export_data');
+            // Add the new AJAX action for getting developers by team
+            $this->add_action('wp_ajax_dmtp_get_developers_for_team', $ajax_handlers, 'dmtp_get_developers_for_team');
             
             // Register general hooks
             $this->add_action('save_post_dmtp_sprint', $hooks, 'save_sprint_post', 10, 3);
             $this->add_action('save_post_dmtp_story', $hooks, 'save_story_post', 10, 3);
             $this->add_action('wp_trash_post', $hooks, 'trash_post_cleanup');
+            
+            // Register admin column hooks for Sprints
+            $this->add_filter('manage_dmtp_sprint_posts_columns', $hooks, 'add_sprint_admin_columns');
+            $this->add_action('manage_dmtp_sprint_posts_custom_column', $hooks, 'display_sprint_admin_columns', 10, 2); // Need 2 args ($column, $post_id)
         }
 
         /**

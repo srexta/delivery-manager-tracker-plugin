@@ -8,8 +8,18 @@
 // Get utilities
 $utilities = new DMTP_Utilities();
 
-// Get available developers
-$developers = $utilities->get_all_developers();
+// Get available teams from Settings Page
+$teams = array();
+if (function_exists('get_field') && have_rows('dmtp_teams', 'option')) {
+    while (have_rows('dmtp_teams', 'option')) : the_row();
+        $team_name = get_sub_field('team_name');
+        if ($team_name) {
+            $teams[] = $team_name;
+        }
+    endwhile;
+    sort($teams);
+    reset_rows();
+}
 
 // Get available sprints
 $sprint_args = array(
@@ -21,7 +31,8 @@ $sprint_args = array(
 $sprints = get_posts($sprint_args);
 
 // Get selected filters
-$selected_developer = isset($_GET['developer_id']) ? intval($_GET['developer_id']) : 0;
+$selected_team_name = isset($_GET['team_name']) ? sanitize_text_field($_GET['team_name']) : '';
+$selected_developer_name = isset($_GET['developer_name']) ? sanitize_text_field($_GET['developer_name']) : '';
 $selected_sprint = isset($_GET['sprint_id']) ? intval($_GET['sprint_id']) : 0;
 
 ?>
@@ -35,14 +46,27 @@ $selected_sprint = isset($_GET['sprint_id']) ? intval($_GET['sprint_id']) : 0;
         <form method="get">
             <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>" />
             
-            <label for="developer_id"><?php esc_html_e('Filter by Developer:', 'delivery-manager-tracking-plugin'); ?></label>
-            <select id="developer_id" name="developer_id">
-                <option value="0"><?php esc_html_e('-- All Developers --', 'delivery-manager-tracking-plugin'); ?></option>
-                <?php foreach ($developers as $developer) : ?>
-                    <option value="<?php echo esc_attr($developer['id']); ?>" <?php selected($selected_developer, $developer['id']); ?>>
-                        <?php echo esc_html($developer['name']); ?>
+            <label for="hotfix_team_name"><?php esc_html_e('Filter by Team:', 'delivery-manager-tracking-plugin'); ?></label>
+            <select id="hotfix_team_name" name="team_name">
+                <option value=""><?php esc_html_e('-- All Teams --', 'delivery-manager-tracking-plugin'); ?></option>
+                <?php foreach ($teams as $team) : ?>
+                    <option value="<?php echo esc_attr($team); ?>" <?php selected($selected_team_name, $team); ?>>
+                        <?php echo esc_html($team); ?>
                     </option>
                 <?php endforeach; ?>
+                <?php if (empty($teams)): ?>
+                    <option value="" disabled><?php esc_html_e('No teams defined in Settings', 'delivery-manager-tracking-plugin'); ?></option>
+                <?php endif; ?>
+            </select>
+            
+            <label for="hotfix_developer_name"><?php esc_html_e('Filter by Developer:', 'delivery-manager-tracking-plugin'); ?></label>
+            <select id="hotfix_developer_name" name="developer_name" <?php echo $selected_team_name ? '' : 'disabled'; ?> >
+                <option value=""><?php echo $selected_team_name ? esc_html__('-- All Developers --', 'delivery-manager-tracking-plugin') : esc_html__('-- Select Team First --', 'delivery-manager-tracking-plugin'); ?></option>
+                <?php 
+                if ($selected_team_name && $selected_developer_name) {
+                    echo '<option value="' . esc_attr($selected_developer_name) . '" selected>' . esc_html($selected_developer_name) . '</option>';
+                }
+                ?>
             </select>
             
             <label for="sprint_id"><?php esc_html_e('Filter by Sprint:', 'delivery-manager-tracking-plugin'); ?></label>
@@ -88,12 +112,17 @@ $selected_sprint = isset($_GET['sprint_id']) ? intval($_GET['sprint_id']) : 0;
                         'compare' => '=',
                     );
                 }
-                if ($selected_developer) {
-                    $hotfix_args['meta_query'][] = array(
-                        'key' => 'assigned_user',
-                        'value' => $selected_developer,
-                        'compare' => '=',
-                    );
+                if ($selected_developer_name) {
+                    $user_object = get_user_by('display_name', $selected_developer_name);
+                    if ($user_object) {
+                        $hotfix_args['meta_query'][] = array(
+                            'key' => 'assigned_user',
+                            'value' => $user_object->ID,
+                            'compare' => '=',
+                        );
+                    } else {
+                        $hotfix_args['post__in'] = array(0);
+                    }
                 }
                 
                 $hotfix_query = new WP_Query($hotfix_args);

@@ -405,5 +405,91 @@ if (!class_exists('DMTP_Hooks')) {
             
             return $content;
         }
+
+        /**
+         * Filter the admin columns for the Sprint post type.
+         *
+         * @param array $columns Existing columns.
+         * @return array Modified columns.
+         */
+        public function add_sprint_admin_columns($columns) {
+            // Create a new columns array to control order
+            $new_columns = array();
+
+            // Keep checkbox and title
+            if (isset($columns['cb'])) {
+                $new_columns['cb'] = $columns['cb'];
+                unset($columns['cb']);
+            }
+            if (isset($columns['title'])) {
+                $new_columns['title'] = $columns['title'];
+                unset($columns['title']);
+            }
+
+            // Add our custom columns
+            $new_columns['duration'] = __('Duration', 'delivery-manager-tracking-plugin');
+            $new_columns['teams'] = __('Team(s)', 'delivery-manager-tracking-plugin');
+            $new_columns['hotfixes'] = __('Hotfixes #', 'delivery-manager-tracking-plugin');
+            
+            // Remove author if desired
+            if (isset($columns['author'])) {
+                 unset($columns['author']);
+            }
+            
+            // Add back any remaining standard columns (like Date)
+            $columns = array_merge($new_columns, $columns);
+
+            return $columns;
+        }
+
+        /**
+         * Display the content for custom Sprint admin columns.
+         *
+         * @param string $column  The name of the column.
+         * @param int    $post_id The ID of the current post.
+         */
+        public function display_sprint_admin_columns($column, $post_id) {
+            switch ($column) {
+                case 'duration':
+                    $start_date = get_post_meta($post_id, 'start_date', true);
+                    $end_date = get_post_meta($post_id, 'end_date', true);
+                    
+                    if ($start_date && $end_date) {
+                        // Format as 'M j - M j' (e.g., Sep 4 - Sep 20)
+                        $start_formatted = date('M j', strtotime($start_date));
+                        $end_formatted = date('M j', strtotime($end_date));
+                        echo esc_html($start_formatted . ' - ' . $end_formatted);
+                    } else {
+                        echo 'N/A';
+                    }
+                    break;
+
+                case 'teams':
+                    $teams = get_post_meta($post_id, 'selected_teams', true);
+                    if (!empty($teams) && is_array($teams)) {
+                        echo esc_html(implode(', ', $teams));
+                    } else {
+                        echo 'N/A';
+                    }
+                    break;
+
+                case 'hotfixes':
+                    $args = array(
+                        'post_type' => 'dmtp_hotfix',
+                        'posts_per_page' => -1, // Count all
+                        'meta_query' => array(
+                            array(
+                                'key' => 'related_sprint',
+                                'value' => $post_id,
+                                'compare' => '=',
+                            ),
+                        ),
+                        'fields' => 'ids', // Only need IDs for counting
+                    );
+                    $hotfix_query = new WP_Query($args);
+                    echo esc_html($hotfix_query->found_posts);
+                    break;
+            }
+        }
     }
 } 

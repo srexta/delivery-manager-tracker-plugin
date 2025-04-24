@@ -374,5 +374,61 @@ if (!class_exists('DMTP_Ajax_Handlers')) {
             // If issues arise, consider manual escaping: return '"' . str_replace('"', '""', $str) . '"';
             return $str;
         }
+
+        /**
+         * Get developers (members) for a specific team via AJAX.
+         */
+        public function dmtp_get_developers_for_team() {
+            // Check for nonce security
+            if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'dmtp_ajax_nonce')) {
+                wp_send_json_error(array('message' => 'Security check failed.'));
+            }
+            
+            // Check for required team name parameter
+            if (!isset($_POST['team_name']) || empty($_POST['team_name'])) {
+                wp_send_json_error(array('message' => 'Missing team name.'));
+            }
+            
+            $team_name_to_find = sanitize_text_field($_POST['team_name']);
+            $developers = array();
+
+            // Check if ACF function exists
+            if (!function_exists('have_rows')) {
+                 wp_send_json_error(array('message' => 'ACF functions not available.'));
+            }
+
+            // Loop through teams in options
+            if (have_rows('dmtp_teams', 'option')) {
+                while (have_rows('dmtp_teams', 'option')) : the_row();
+                    $current_team_name = get_sub_field('team_name');
+                    
+                    // Found the matching team
+                    if ($current_team_name === $team_name_to_find) {
+                        if (have_rows('team_members')) {
+                            while (have_rows('team_members')) : the_row();
+                                $member_name = get_sub_field('member_name');
+                                if ($member_name) {
+                                    // Return as value => label for consistency, although just names might suffice
+                                    $developers[] = array(
+                                        'value' => esc_attr($member_name),
+                                        'label' => esc_html($member_name)
+                                    );
+                                }
+                            endwhile;
+                        }
+                        // Found the team and its members (or lack thereof), break the loop
+                        break; 
+                    }
+                endwhile;
+                reset_rows();
+            }
+            
+            // Sort developers alphabetically by label
+            usort($developers, function($a, $b) {
+                return strcmp($a['label'], $b['label']);
+            });
+            
+            wp_send_json_success(array('developers' => $developers));
+        }
     }
 } 
