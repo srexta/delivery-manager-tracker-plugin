@@ -151,7 +151,7 @@ if (!class_exists('DMTP_Hooks')) {
             // Only modify our custom post types
             $post_type = $query->get('post_type');
             
-            if (!in_array($post_type, array('dmtp_sprint', 'dmtp_story', 'dmtp_hotfix'))) {
+            if (!in_array($post_type, array('dmtp_sprint', 'dmtp_story'))) {
                 return;
             }
             
@@ -161,7 +161,7 @@ if (!class_exists('DMTP_Hooks')) {
             // Developers can only see their own items
             if (in_array('dmtp_developer', $user->roles)) {
                 // For stories and hotfixes, filter by assigned_user meta
-                if (in_array($post_type, array('dmtp_story', 'dmtp_hotfix'))) {
+                if (in_array($post_type, array('dmtp_story'))) {
                     $meta_query = $query->get('meta_query');
                     
                     if (!is_array($meta_query)) {
@@ -220,29 +220,6 @@ if (!class_exists('DMTP_Hooks')) {
                 
                 // Clear the calculated total hours from the sprint as well
                 delete_post_meta($post_id, 'total_story_estimated_hours');
-                
-                // Also handle hotfixes
-                $args = array(
-                    'post_type' => 'dmtp_hotfix',
-                    'posts_per_page' => -1,
-                    'meta_query' => array(
-                        array(
-                            'key' => 'related_sprint',
-                            'value' => $post_id,
-                            'compare' => '=',
-                        ),
-                    ),
-                );
-                
-                $query = new WP_Query($args);
-                
-                foreach ($query->posts as $hotfix) {
-                    // Option 1: Delete the hotfixes
-                    // wp_trash_post($hotfix->ID);
-                    
-                    // Option 2: Just clear the related_sprint field
-                    update_post_meta($hotfix->ID, 'related_sprint', '');
-                }
             }
         }
         
@@ -364,45 +341,6 @@ if (!class_exists('DMTP_Hooks')) {
                 return $additional_content . $content;
             }
             
-            // Add extra information to hotfix display
-            elseif ($post->post_type === 'dmtp_hotfix') {
-                $hotfix_id = $post->ID;
-                
-                $sprint_id = get_post_meta($hotfix_id, 'related_sprint', true);
-                $user_id = get_post_meta($hotfix_id, 'assigned_user', true);
-                $issue_description = get_post_meta($hotfix_id, 'issue_description', true);
-                $resolution_summary = get_post_meta($hotfix_id, 'resolution_summary', true);
-                
-                $additional_content = '<div class="dmtp-hotfix-details">';
-                $additional_content .= '<h3>' . __('Hotfix Details', 'delivery-manager-tracking-plugin') . '</h3>';
-                
-                if (!empty($sprint_id)) {
-                    $sprint = get_post($sprint_id);
-                    if ($sprint) {
-                        $additional_content .= '<div class="dmtp-detail"><strong>' . __('Sprint:', 'delivery-manager-tracking-plugin') . '</strong> <a href="' . get_permalink($sprint_id) . '">' . esc_html($sprint->post_title) . '</a></div>';
-                    }
-                }
-                
-                if (!empty($user_id)) {
-                    $user = get_userdata($user_id);
-                    if ($user) {
-                        $additional_content .= '<div class="dmtp-detail"><strong>' . __('Assigned To:', 'delivery-manager-tracking-plugin') . '</strong> ' . esc_html($user->display_name) . '</div>';
-                    }
-                }
-                
-                if (!empty($issue_description)) {
-                    $additional_content .= '<div class="dmtp-detail"><strong>' . __('Issue Description:', 'delivery-manager-tracking-plugin') . '</strong> ' . wp_kses_post($issue_description) . '</div>';
-                }
-                
-                if (!empty($resolution_summary)) {
-                    $additional_content .= '<div class="dmtp-detail"><strong>' . __('Resolution Summary:', 'delivery-manager-tracking-plugin') . '</strong> ' . wp_kses_post($resolution_summary) . '</div>';
-                }
-                
-                $additional_content .= '</div>';
-                
-                return $additional_content . $content;
-            }
-            
             return $content;
         }
 
@@ -429,7 +367,6 @@ if (!class_exists('DMTP_Hooks')) {
             // Add our custom columns
             $new_columns['duration'] = __('Duration', 'delivery-manager-tracking-plugin');
             $new_columns['teams'] = __('Team(s)', 'delivery-manager-tracking-plugin');
-            $new_columns['hotfixes'] = __('Hotfixes #', 'delivery-manager-tracking-plugin');
             
             // Remove author if desired
             if (isset($columns['author'])) {
@@ -471,23 +408,6 @@ if (!class_exists('DMTP_Hooks')) {
                     } else {
                         echo 'N/A';
                     }
-                    break;
-
-                case 'hotfixes':
-                    $args = array(
-                        'post_type' => 'dmtp_hotfix',
-                        'posts_per_page' => -1, // Count all
-                        'meta_query' => array(
-                            array(
-                                'key' => 'related_sprint',
-                                'value' => $post_id,
-                                'compare' => '=',
-                            ),
-                        ),
-                        'fields' => 'ids', // Only need IDs for counting
-                    );
-                    $hotfix_query = new WP_Query($args);
-                    echo esc_html($hotfix_query->found_posts);
                     break;
             }
         }

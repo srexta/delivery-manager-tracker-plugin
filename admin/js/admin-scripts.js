@@ -1,3 +1,54 @@
+// --- Helper Function for Download ---
+// Moved outside the jQuery wrapper to ensure it's globally accessible
+function downloadData(data, filename, format) {
+    var blob;
+    var contentType = format === 'csv' ? 'text/csv' : 'application/json';
+    var content = format === 'csv' ? data : JSON.stringify(data, null, 2);
+
+    try {
+        blob = new Blob([content], { type: contentType + ';charset=utf-8;' });
+    } catch (e) { // Handle IE specific Blob constructor
+        window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder || window.MSBlobBuilder;
+        if (window.BlobBuilder) {
+            var bb = new BlobBuilder();
+            bb.append(content);
+            blob = bb.getBlob(contentType);
+        } else {
+            // Attempt to use localized string, fallback if not available yet
+            var errorMsg = (typeof dmtp_localized_data !== 'undefined' && dmtp_localized_data.i18n && dmtp_localized_data.i18n.downloadError) 
+                            ? dmtp_localized_data.i18n.downloadError 
+                            : 'Your browser does not support the necessary features for downloading.';
+            alert(errorMsg);
+            return;
+        }
+    }
+    
+    if (navigator.msSaveBlob) { // IE 10+
+        navigator.msSaveBlob(blob, filename);
+    } else {
+        var link = document.createElement("a");
+        if (link.download !== undefined) { // Feature detection
+            var url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } else {
+             // Fallback for browsers that don't support download attribute
+             var popup = window.open("", "_blank");
+             if (popup) {
+                 popup.document.write("<pre>" + content + "</pre>");
+                 popup.document.close();
+             } else {
+                 alert('Popup blocked. Please allow popups for this site to download the file.');
+             }
+        }
+    }
+}
+
 /**
  * Admin scripts for the Delivery Manager Tracking Plugin.
  */
@@ -5,7 +56,6 @@
     'use strict';
 
     $(document).ready(function() {
-        console.log('DMTP admin scripts loaded.');
 
         // --- Export Handlers ---
 
@@ -26,7 +76,7 @@
             exportData('developer', format, { developer_name: devName }, e);
         });
 
-        // --- Helper Function for Export ---
+        // --- Helper Function for Export (Uses global downloadData) ---
         function exportData(exportType, format, additionalData, event) {
             var data = {
                 action: 'dmtp_export_data',
@@ -41,8 +91,6 @@
 
             console.log('Exporting:', data);
             
-            // Add a loading indicator here
-            // TODO: Add a more robust loading indicator
             var $button = event ? $(event.target).prop('disabled', true).text(dmtp_localized_data.i18n.exporting) : null;
             
             $.ajax({
@@ -52,7 +100,7 @@
                 success: function(response) {
                     if (response.success) {
                         console.log('Export successful:', response.data);
-                        // Trigger file download
+                        // Trigger file download using the globally defined function
                         downloadData(response.data.data, exportType + '_export.' + format, format);
                     } else {
                         console.error('Error exporting data:', response.data.message);
@@ -64,53 +112,14 @@
                     alert(dmtp_localized_data.i18n.ajaxError + ' ' + textStatus);
                 },
                 complete: function() {
-                    // Remove loading indicator
-                    $button.prop('disabled', false).text($button.data('original-text')); // Restore original text
+                    if ($button) {
+                        $button.prop('disabled', false).text($button.data('original-text')); // Restore original text
+                    }
                 }
             });
         }
         
-        // --- Helper Function for Download ---
-        function downloadData(data, filename, format) {
-            var blob;
-            var contentType = format === 'csv' ? 'text/csv' : 'application/json';
-            var content = format === 'csv' ? data : JSON.stringify(data, null, 2);
-
-            try {
-                blob = new Blob([content], { type: contentType + ';charset=utf-8;' });
-            } catch (e) { // Handle IE specific Blob constructor
-                window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder || window.MSBlobBuilder;
-                if (window.BlobBuilder) {
-                    var bb = new BlobBuilder();
-                    bb.append(content);
-                    blob = bb.getBlob(contentType);
-                } else {
-                    alert(dmtp_localized_data.i18n.downloadError);
-                    return;
-                }
-            }
-            
-            if (navigator.msSaveBlob) { // IE 10+
-                navigator.msSaveBlob(blob, filename);
-            } else {
-                var link = document.createElement("a");
-                if (link.download !== undefined) { // Feature detection
-                    var url = URL.createObjectURL(blob);
-                    link.setAttribute("href", url);
-                    link.setAttribute("download", filename);
-                    link.style.visibility = 'hidden';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                } else {
-                     // Fallback for browsers that don't support download attribute
-                     var popup = window.open("", "_blank");
-                     popup.document.write("<pre>" + content + "</pre>");
-                     popup.document.close();
-                }
-            }
-        }
+        // --- Helper Function for Download --- IS NOW DEFINED GLOBALLY ABOVE ---
 
         // --- Other Admin Logic ---
         // Initialize charts (e.g., using Chart.js) if needed
@@ -226,117 +235,15 @@
         });
         
         initCharts();
-
-        // --- Auto-populate Member Performance (Run AFTER ACF is ready) --- 
-        // Check if acf object exists before trying to use it
-        if (typeof acf !== 'undefined') { 
-            acf.ready(function() {
-
-                if (typeof dmtp_localized_data !== 'undefined' && dmtp_localized_data.teamsData) {
-                    
-                    const teamsCheckboxKey = dmtp_localized_data.fieldKeys.teamsCheckbox;
-                    const performanceRepeaterKey = dmtp_localized_data.fieldKeys.performanceRepeater;
-                    const memberNameSubFieldKey = dmtp_localized_data.fieldKeys.memberNameSubField;
-                    const teamsData = dmtp_localized_data.teamsData; // { 'team-key': ['member1', 'member2'] }
-                    
-                    // Function to update the performance repeater
-                    function updatePerformanceRepeater() {
-                        console.log('[DMTP Debug] updatePerformanceRepeater called.'); 
-                        
-                        const teamsCheckboxField = acf.getField(teamsCheckboxKey);
-                        console.log('[DMTP Debug] Teams Checkbox Field:', teamsCheckboxField);
-                        if (!teamsCheckboxField) {
-                            console.error('[DMTP Debug] Could not find Teams Checkbox field using key:', teamsCheckboxKey);
-                            return; 
-                        }
-
-                        const performanceRepeater = acf.getField(performanceRepeaterKey);
-                        console.log('[DMTP Debug] Performance Repeater Field:', performanceRepeater);
-                        if (!performanceRepeater) {
-                            console.error('[DMTP Debug] Could not find Performance Repeater field using key:', performanceRepeaterKey);
-                            return; 
-                        }
-
-                        const selectedTeams = [];
-                        const $checkedTeams = teamsCheckboxField.$('input[type="checkbox"]:checked');
-                        
-                        $checkedTeams.each(function() {
-                            selectedTeams.push($(this).val()); 
-                        });
-
-                        const requiredMembers = [];
-                        selectedTeams.forEach(teamKey => {
-                            if (teamsData[teamKey]) {
-                                requiredMembers.push(...teamsData[teamKey]);
-                            }
-                        });
-                        const uniqueRequiredMembers = [...new Set(requiredMembers)];
-
-                        const $rows = performanceRepeater.$el.find('.acf-row:not(.acf-clone)'); 
-                        const currentMembers = [];
-
-                        // Get current members and check for removal
-                        $rows.each(function() {
-                            const $row = $(this);
-                            const memberNameField = acf.getFields({ parent: $row, key: memberNameSubFieldKey })[0];
-                            const currentName = memberNameField ? memberNameField.val() : null;
-                            
-                            if (currentName) {
-                                currentMembers.push(currentName);
-                                if (!uniqueRequiredMembers.includes(currentName)) {
-                                    console.log('[DMTP Debug] Removing row for:', currentName);
-                                    acf.removeRow($row.data('id'), performanceRepeater.$el); 
-                                }
-                            }
-                        });
-
-                        // Add required members not currently present
-                        uniqueRequiredMembers.forEach(memberName => {
-                            if (!currentMembers.includes(memberName)) {
-                                console.log('[DMTP Debug] Adding row for:', memberName);
-                                acf.addRow(performanceRepeater.$el, function($newRow) {
-                                    setTimeout(function() {
-                                        console.log('[DMTP Debug] Finding name field in new row:', $newRow);
-                                        const newMemberNameField = acf.getFields({ parent: $newRow, key: memberNameSubFieldKey })[0];
-                                        console.log('[DMTP Debug] Found field:', newMemberNameField);
-                                        if (newMemberNameField) {
-                                            console.log('[DMTP Debug] Setting value to:', memberName);
-                                            newMemberNameField.val(memberName);
-                                            console.log('[DMTP Debug] Value after setting:', newMemberNameField.val());
-                                        } else {
-                                            console.error('[DMTP Debug] Could not find member name field [' + memberNameSubFieldKey + '] in new row.');
-                                        }
-                                    }, 50); 
-                                });
-                            }
-                        });
-                    }
-
-                    // Listen for changes on the team selection checkbox field
-                    // We need to listen on the document because the field itself might be added/removed by ACF
-                    $(document).on('change', '.acf-field[data-key="' + teamsCheckboxKey + '"] input[type="checkbox"]' , function(e){
-                        console.log('[DMTP Debug] Change detected on team checkbox via event delegation');
-                        setTimeout(updatePerformanceRepeater, 100); 
-                    });
-
-                    // Initial population on page load (optional, but good UX)
-                    // Uncomment if you want it to run immediately when the page loads/refreshes
-                     // setTimeout(updatePerformanceRepeater, 300); // Add a longer delay on load
-
-                }
-            }); // End acf.ready
-        } // End typeof acf check
-
-        // --- Dynamic Developer Dropdown for Individual Tracker ---
+        
+        // --- Dynamic Developer Dropdown for Individual Tracker (AJAX based) ---
         var $indTeamSelect = $('#dmtp_team_name');
         var $indDeveloperSelect = $('#dmtp_developer_name');
-        if ($indTeamSelect.length) { // Only run if Individual Tracker elements exist
+        if ($indTeamSelect.length) { 
             var initialIndDevValue = $indDeveloperSelect.val(); 
-
             function populateIndDevelopers(selectedTeam) {
                 if (selectedTeam) {
                     $indDeveloperSelect.prop('disabled', true).html('<option value="">' + dmtp_localized_data.i18n.loading + '</option>');
-
                     $.ajax({
                         url: dmtp_localized_data.ajax_url,
                         type: 'POST',
@@ -348,7 +255,6 @@
                         success: function(response) {
                             $indDeveloperSelect.prop('disabled', false).empty();
                             $indDeveloperSelect.append('<option value="">-- Select Developer --</option>');
-                            
                             if (response.success && response.data.developers && response.data.developers.length > 0) {
                                 $.each(response.data.developers, function(index, developer) {
                                     var option = '<option value="' + developer.value + '">' + developer.label + '</option>';
@@ -374,12 +280,10 @@
                     $indDeveloperSelect.prop('disabled', true).html('<option value="">-- Select Team First --</option>');
                 }
             }
-
             $indTeamSelect.on('change', function() {
                 initialIndDevValue = null;
                 populateIndDevelopers($(this).val());
             });
-
             if ($indTeamSelect.val()) {
                 populateIndDevelopers($indTeamSelect.val());
             }
@@ -446,6 +350,238 @@
             if ($hotfixTeamSelect.val()) {
                  populateHotfixDevelopers($hotfixTeamSelect.val());
             }
+        }
+
+        // --- Dynamic Sprint Dropdown for Hotfix Tracker Filter ---
+        var $hotfixTeamFilter = $('#hotfix_team_filter');
+        var $sprintFilterSelect = $('#sprint_id'); // The sprint dropdown in the hotfix filter
+
+        if ($hotfixTeamFilter.length) {
+            // Function to populate sprints based on selected team
+            function populateSprintsForFilter(selectedTeam) {
+                if (selectedTeam) {
+                    $sprintFilterSelect.prop('disabled', true).html('<option value="">Loading Sprints...</option>');
+
+                    $.ajax({
+                        url: dmtp_localized_data.ajax_url,
+                        type: 'POST',
+                        data: {
+                            action: 'dmtp_get_sprints_for_team_filter', // Our new AJAX action
+                            nonce: dmtp_localized_data.nonce,
+                            team_name: selectedTeam
+                        },
+                        success: function(response) {
+                            $sprintFilterSelect.prop('disabled', false).empty(); // Enable and clear
+                            $sprintFilterSelect.append('<option value="">-- Select Sprint --</option>');
+                            
+                            if (response.success && response.data.sprints && response.data.sprints.length > 0) {
+                                $.each(response.data.sprints, function(index, sprint) {
+                                    var option = '<option value="' + sprint.id + '">' + sprint.title + '</option>';
+                                    $sprintFilterSelect.append(option);
+                                });
+                                // If a sprint was already selected (e.g. from GET param), try to re-select it
+                                var currentSprintId = new URLSearchParams(window.location.search).get('sprint_id');
+                                if (currentSprintId && $sprintFilterSelect.find('option[value="' + currentSprintId + '"]').length > 0) {
+                                     $sprintFilterSelect.val(currentSprintId);
+                                }
+                            } else if (response.success) {
+                                // No sprints found for this team
+                                $sprintFilterSelect.append('<option value="" disabled>No sprints found for this team</option>');
+                            } else {
+                                console.error('Error fetching sprints:', response.data.message);
+                                $sprintFilterSelect.prop('disabled', true).html('<option value="">Error loading sprints</option>');
+                            }
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.error('AJAX Error fetching sprints:', textStatus, errorThrown);
+                            $sprintFilterSelect.prop('disabled', true).html('<option value="">AJAX Error</option>');
+                        }
+                    });
+                } else {
+                    // No team selected, disable and reset sprint dropdown
+                    $sprintFilterSelect.prop('disabled', true).html('<option value="">-- Select Team First --</option>');
+                }
+            }
+
+            // Event listener for team filter change
+            $hotfixTeamFilter.on('change', function() {
+                populateSprintsForFilter($(this).val());
+            });
+
+            // Trigger on page load if a team is already selected in the filter
+            if ($hotfixTeamFilter.val()) {
+                 populateSprintsForFilter($hotfixTeamFilter.val());
+            }
+        }
+
+        // --- ACF Dependent Logic --- 
+        // Only run if acf object exists AND is ready
+        if (typeof acf !== 'undefined') {
+            acf.addAction( 'ready', function() {
+                // --- Temporarily Commented Out for Debugging ---
+                
+                // --- Auto-populate Member Performance Repeater --- 
+                if (typeof dmtp_localized_data !== 'undefined' && dmtp_localized_data.teamsData) {
+                    const teamsCheckboxKey_perf = dmtp_localized_data.fieldKeys.teamsCheckbox; // Use unique var name suffix
+                    const performanceRepeaterKey = dmtp_localized_data.fieldKeys.performanceRepeater;
+                    const memberNameSubFieldKey = dmtp_localized_data.fieldKeys.memberNameSubField;
+                    const teamsData = dmtp_localized_data.teamsData;
+                    
+                    function updatePerformanceRepeater() {
+                        console.log('[DMTP Debug] updatePerformanceRepeater called.'); 
+                        const teamsCheckboxField = acf.getField(teamsCheckboxKey_perf);
+                        if (!teamsCheckboxField) return;
+                        const performanceRepeater = acf.getField(performanceRepeaterKey);
+                        if (!performanceRepeater) return;
+
+                        const selectedTeams = [];
+                        const $checkedTeams = teamsCheckboxField.$('input[type="checkbox"]:checked');
+                        
+                        $checkedTeams.each(function() {
+                            selectedTeams.push($(this).val()); 
+                        });
+
+                        const requiredMembers = [];
+                        selectedTeams.forEach(teamKey => {
+                            if (teamsData[teamKey]) {
+                                requiredMembers.push(...teamsData[teamKey]);
+                            }
+                        });
+                        const uniqueRequiredMembers = [...new Set(requiredMembers)];
+
+                        const $rows = performanceRepeater.$el.find('.acf-row:not(.acf-clone)'); 
+                        const currentMembers = [];
+
+                        // Get current members and check for removal
+                        $rows.each(function() {
+                            const $row = $(this);
+                            const memberNameField = acf.getFields({ parent: $row, key: memberNameSubFieldKey })[0];
+                            const currentName = memberNameField ? memberNameField.val() : null;
+                            
+                            if (currentName) {
+                                currentMembers.push(currentName);
+                                if (!uniqueRequiredMembers.includes(currentName)) {
+                                    console.log('[DMTP Debug] Removing row for:', currentName);
+                                    acf.removeRow($row.data('id'), performanceRepeater.$el); 
+                                }
+                            }
+                        });
+
+                        // Add required members not currently present
+                        uniqueRequiredMembers.forEach(memberName => {
+                            if (!currentMembers.includes(memberName)) {
+                                console.log('[DMTP Debug] Adding row for:', memberName);
+                                acf.addRow(performanceRepeater.$el, function($newRow) {
+                                    setTimeout(function() {
+                                        console.log('[DMTP Debug] Finding name field in new row:', $newRow);
+                                        const newMemberNameField = acf.getFields({ parent: $newRow, key: memberNameSubFieldKey })[0];
+                                        console.log('[DMTP Debug] Found field:', newMemberNameField);
+                                        if (newMemberNameField) {
+                                            console.log('[DMTP Debug] Setting value to:', memberName);
+                                            newMemberNameField.val(memberName);
+                                            console.log('[DMTP Debug] Value after setting:', newMemberNameField.val());
+                                        } else {
+                                            console.error('[DMTP Debug] Could not find member name field [' + memberNameSubFieldKey + '] in new row.');
+                                        }
+                                    }, 50); 
+                                });
+                            }
+                        });
+                    }
+
+                    // Event listener for performance repeater team selection
+                    acf.on('change', '[data-key="' + teamsCheckboxKey_perf + '"] input[type="checkbox"]', function() {
+                        console.log('[DMTP] Change detected on performance team checkbox');
+                        setTimeout(updatePerformanceRepeater, 100);
+                    });
+                    
+                    // Initial call if needed (optional)
+                    setTimeout(updatePerformanceRepeater, 300);
+                } // End check for performance repeater data
+                
+                // --- Dynamic Team Select Population in Sprint Hotfix Repeater ---
+                const teamsCheckboxKey_hf = dmtp_localized_data.fieldKeys.teamsCheckbox; // Use unique var name suffix
+                const hotfixRepeaterKey = dmtp_localized_data.fieldKeys.sprintHotfixRepeater;
+                const teamSelectKey = dmtp_localized_data.fieldKeys.hotfixTeamSelect;
+                
+                function getSelectedTeamChoices() {
+                    const choices = [{'value': '', 'label': '-- Select Team --'}];
+                    const teamsCheckboxField = acf.getField(teamsCheckboxKey_hf);
+                    if (teamsCheckboxField) {
+                        const $checked = teamsCheckboxField.$el.find('input[type="checkbox"]:checked');
+                        $checked.each(function() {
+                            const val = $(this).val();
+                            const label = $(this).closest('label').text().trim(); // Get label text
+                            choices.push({ 'value': val, 'label': label });
+                        });
+                    }
+                    return choices;
+                }
+
+                function updateHotfixTeamSelects() {
+                    const newChoices = getSelectedTeamChoices();
+                    const hotfixRepeaterField = acf.getField(hotfixRepeaterKey);
+                    
+                    if (hotfixRepeaterField) {
+                        // Find all team select fields within the repeater rows (excluding clones)
+                        const teamSelectFields = acf.findFields({ 
+                            key: teamSelectKey, 
+                            parent: hotfixRepeaterField.$el 
+                        });
+                        
+                        teamSelectFields.forEach(function(field) {
+                            const currentValue = field.val(); // Get current value before update
+                            field.update({ choices: newChoices });
+                            
+                            // Try to re-select the previous value if it still exists in new choices
+                            let valueStillExists = false;
+                            for(let i=0; i < newChoices.length; i++) {
+                                if (newChoices[i].value === currentValue) {
+                                    valueStillExists = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (valueStillExists) {
+                                field.val(currentValue);
+                            } else {
+                                field.val(''); // Reset if previous value is no longer valid
+                            }
+                        });
+                    }
+                }
+                
+                // Event listener for main team checkbox change (for hotfix selects)
+                acf.on('change', '[data-key="' + teamsCheckboxKey_hf + '"] input[type="checkbox"]', function() {
+                    console.log('[DMTP] Team checkbox changed, updating hotfix team selects.');
+                    updateHotfixTeamSelects();
+                });
+                
+                // Event listener for new hotfix repeater row append
+                acf.on('append', '[data-key="' + hotfixRepeaterKey + '"]', function(e){
+                    console.log('[DMTP] New hotfix team log row added, updating its team select.');
+                    const $newRow = $(e.target);
+                    const newTeamSelectField = acf.findFields({ 
+                        key: teamSelectKey, 
+                        parent: $newRow 
+                    })[0]; // Get the field instance in the new row
+                    
+                    if (newTeamSelectField) {
+                         const choices = getSelectedTeamChoices();
+                         newTeamSelectField.update({ choices: choices });
+                         newTeamSelectField.val(''); // Start with default selection
+                    }
+                });
+
+                // Initial population for hotfix selects
+                console.log('[DMTP] Initial population of hotfix team selects.');
+                updateHotfixTeamSelects();
+                
+                // --- End Temporarily Commented Out ---
+                
+            }); // End acf.ready()
+        } else {
+            console.log('[DMTP] ACF object not found, skipping ACF-dependent features.');
         }
 
     }); // End document ready

@@ -75,36 +75,6 @@ if (!class_exists('DMTP_Post_Types')) {
                 'show_in_rest'        => true,
                 'rewrite'             => array('slug' => 'story'),
             ));
-
-            // Register Hotfix CPT
-            register_post_type('dmtp_hotfix', array(
-                'labels' => array(
-                    'name'               => __('Hotfixes', 'delivery-manager-tracking-plugin'),
-                    'singular_name'      => __('Hotfix', 'delivery-manager-tracking-plugin'),
-                    'menu_name'          => __('Hotfixes', 'delivery-manager-tracking-plugin'),
-                    'name_admin_bar'     => __('Hotfix', 'delivery-manager-tracking-plugin'),
-                    'add_new'            => __('Add New', 'delivery-manager-tracking-plugin'),
-                    'add_new_item'       => __('Add New Hotfix', 'delivery-manager-tracking-plugin'),
-                    'new_item'           => __('New Hotfix', 'delivery-manager-tracking-plugin'),
-                    'edit_item'          => __('Edit Hotfix', 'delivery-manager-tracking-plugin'),
-                    'view_item'          => __('View Hotfix', 'delivery-manager-tracking-plugin'),
-                    'all_items'          => __('All Hotfixes', 'delivery-manager-tracking-plugin'),
-                    'search_items'       => __('Search Hotfixes', 'delivery-manager-tracking-plugin'),
-                    'parent_item_colon'  => __('Parent Hotfixes:', 'delivery-manager-tracking-plugin'),
-                    'not_found'          => __('No hotfixes found.', 'delivery-manager-tracking-plugin'),
-                    'not_found_in_trash' => __('No hotfixes found in Trash.', 'delivery-manager-tracking-plugin')
-                ),
-                'public'              => true,
-                'show_ui'             => true,
-                'show_in_menu'        => false, // Will be added as submenu
-                'capability_type'     => 'post',
-                'has_archive'         => false,
-                'hierarchical'        => false,
-                'menu_position'       => null,
-                'supports'            => array('title', 'editor', 'author'),
-                'show_in_rest'        => true,
-                'rewrite'             => array('slug' => 'hotfix'),
-            ));
         }
 
         /**
@@ -359,6 +329,89 @@ if (!class_exists('DMTP_Post_Types')) {
                             ),
                         ),
                     ),
+                    array(
+                        'key' => 'field_sprint_team_hotfixes',
+                        'label' => 'Team Hotfixes for this Sprint',
+                        'name' => 'sprint_team_hotfixes',
+                        'type' => 'repeater',
+                        'instructions' => 'Log hotfixes worked on by each team during this sprint.',
+                        'required' => 0,
+                        'conditional_logic' => array( 
+                            array(
+                                array(
+                                    'field' => 'field_dmtp_selected_teams',
+                                    'operator' => '!=empty',
+                                ),
+                            ),
+                        ),
+                        'layout' => 'block', 
+                        'button_label' => 'Add Team Hotfix Log',
+                        'sub_fields' => array(
+                            array(
+                                'key' => 'field_sprint_hotfix_team_name',
+                                'label' => 'Team',
+                                'name' => 'team_name',
+                                'type' => 'select',
+                                'choices' => array(), // Requires dynamic population hook/JS
+                                'allow_null' => 0,
+                                'required' => 1,
+                                'wrapper' => array('width' => '30'),
+                            ),
+                            array(
+                                'key' => 'field_sprint_team_hotfix_list',
+                                'label' => 'Hotfixes Logged',
+                                'name' => 'team_hotfix_list',
+                                'type' => 'repeater',
+                                'required' => 0,
+                                'layout' => 'table',
+                                'button_label' => 'Add Hotfix',
+                                'sub_fields' => array(
+                                    array(
+                                        'key' => 'field_nested_hotfix_title',
+                                        'label' => 'Hotfix Title',
+                                        'name' => 'nested_hotfix_title',
+                                        'type' => 'text',
+                                        'wrapper' => array('width' => '30'),
+                                        'required' => 1,
+                                    ),
+                                    array(
+                                        'key' => 'field_nested_hotfix_estimation',
+                                        'label' => 'Estimation Time',
+                                        'name' => 'hotfix_estimation_time',
+                                        'type' => 'text',
+                                        'instructions' => 'e.g., 2 hours, 1 day',
+                                        'required' => 0,
+                                    ),
+                                    array(
+                                        'key' => 'field_nested_hotfix_critical',
+                                        'label' => 'Critical/Response Met?',
+                                        'name' => 'hotfix_critical_response',
+                                        'type' => 'true_false',
+                                        'message' => '',
+                                        'ui' => 1,
+                                        'ui_on_text' => 'Yes',
+                                        'ui_off_text' => 'No',
+                                        'default_value' => 0,
+                                        'wrapper' => array('width' => '15'),
+                                    ),
+                                    array(
+                                        'key' => 'field_nested_hotfix_github',
+                                        'label' => 'GitHub Link',
+                                        'name' => 'hotfix_github_link',
+                                        'type' => 'url',
+                                        'wrapper' => array('width' => '30'),
+                                    ),
+                                    array(
+                                        'key' => 'field_nested_hotfix_rca',
+                                        'label' => 'RCA Link',
+                                        'name' => 'hotfix_rca_link',
+                                        'type' => 'url',
+                                        'wrapper' => array('width' => '30'),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
                 ),
                 'location' => array(
                     array(
@@ -447,67 +500,6 @@ if (!class_exists('DMTP_Post_Types')) {
                             'param' => 'post_type',
                             'operator' => '==',
                             'value' => 'dmtp_story',
-                        ),
-                    ),
-                ),
-                'menu_order' => 0,
-                'position' => 'normal',
-                'style' => 'default',
-                'label_placement' => 'top',
-                'instruction_placement' => 'label',
-                'hide_on_screen' => '',
-                'active' => 1,
-                'description' => '',
-            ));
-
-            // Hotfix field group
-            acf_add_local_field_group(array(
-                'key' => 'group_dmtp_hotfix',
-                'title' => 'Hotfix Details',
-                'fields' => array(
-                    array(
-                        'key' => 'field_hotfix_related_sprint',
-                        'label' => 'Related Sprint',
-                        'name' => 'related_sprint',
-                        'type' => 'post_object',
-                        'instructions' => 'Select the sprint during which this hotfix was applied',
-                        'required' => 1,
-                        'post_type' => array('dmtp_sprint'),
-                        'return_format' => 'id',
-                    ),
-                    array(
-                        'key' => 'field_hotfix_assigned_user',
-                        'label' => 'Assigned User',
-                        'name' => 'assigned_user',
-                        'type' => 'user',
-                        'instructions' => 'Select the user assigned to this hotfix',
-                        'required' => 1,
-                        'role' => '',
-                        'return_format' => 'id',
-                    ),
-                    array(
-                        'key' => 'field_hotfix_issue_description',
-                        'label' => 'Issue Description',
-                        'name' => 'issue_description',
-                        'type' => 'textarea',
-                        'instructions' => 'Describe the issue that required this hotfix',
-                        'required' => 1,
-                    ),
-                    array(
-                        'key' => 'field_hotfix_resolution_summary',
-                        'label' => 'Resolution Summary',
-                        'name' => 'resolution_summary',
-                        'type' => 'textarea',
-                        'instructions' => 'Summarize how the issue was resolved',
-                        'required' => 0,
-                    ),
-                ),
-                'location' => array(
-                    array(
-                        array(
-                            'param' => 'post_type',
-                            'operator' => '==',
-                            'value' => 'dmtp_hotfix',
                         ),
                     ),
                 ),

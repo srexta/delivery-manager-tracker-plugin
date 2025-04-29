@@ -98,6 +98,8 @@ if (!class_exists('DMTP_Loader')) {
             $this->add_action('wp_ajax_dmtp_export_data', $ajax_handlers, 'export_data');
             // Add the new AJAX action for getting developers by team
             $this->add_action('wp_ajax_dmtp_get_developers_for_team', $ajax_handlers, 'dmtp_get_developers_for_team');
+            // Add the new AJAX action for getting sprints by team for the filter
+            $this->add_action('wp_ajax_dmtp_get_sprints_for_team_filter', $ajax_handlers, 'get_sprints_for_team_filter');
             
             // Register general hooks
             $this->add_action('save_post_dmtp_sprint', $hooks, 'save_sprint_post', 10, 3);

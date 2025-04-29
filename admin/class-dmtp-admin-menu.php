@@ -52,7 +52,7 @@ if (!class_exists('DMTP_Admin_Menu')) {
                 'dmtp_sprint_overview',
                 __('Hotfix Tracker', 'delivery-manager-tracking-plugin'),
                 __('Hotfix Tracker', 'delivery-manager-tracking-plugin'),
-                'read_dmtp_hotfix',
+                'read_dmtp_sprint',
                 'dmtp_hotfix_tracker',
                 array($this, 'render_hotfix_tracker_page')
             );
@@ -113,7 +113,13 @@ if (!class_exists('DMTP_Admin_Menu')) {
          * Render the Hotfix Tracker page.
          */
         public function render_hotfix_tracker_page() {
-            include DMTP_PLUGIN_DIR . 'admin/views/hotfix-tracker.php';
+            // Ensure the view file exists (it should, we recreated it)
+            $view_file = DMTP_PLUGIN_DIR . 'admin/views/hotfix-tracker.php';
+            if (file_exists($view_file)) {
+                 include $view_file;
+            } else {
+                 echo '<div class="wrap"><h2>Error</h2><p>Hotfix tracker view file not found.</p></div>';
+            }
         }
 
         /**
@@ -158,7 +164,7 @@ if (!class_exists('DMTP_Admin_Menu')) {
             wp_enqueue_script(
                 'dmtp-admin-scripts',
                 DMTP_PLUGIN_URL . 'admin/js/admin-scripts.js',
-                array('jquery'),
+                array('jquery', 'acf-input'),
                 DMTP_VERSION,
                 true
             );
@@ -172,6 +178,17 @@ if (!class_exists('DMTP_Admin_Menu')) {
                 true
             );
             
+            // Conditionally enqueue hotfix-specific script
+            if ($hook === 'delivery-manager_page_dmtp_hotfix_tracker') {
+                 wp_enqueue_script(
+                    'dmtp-hotfix-admin-scripts',
+                    DMTP_PLUGIN_URL . 'admin/js/hotfix-admin.js',
+                    array('jquery', 'dmtp-admin-scripts'), // Depends on jQuery AND the main admin script (for downloadData)
+                    DMTP_VERSION,
+                    true
+                );
+            }
+            
             // Data to pass to script
             $script_data = array(
                 'ajax_url' => admin_url('admin-ajax.php'),
@@ -181,7 +198,9 @@ if (!class_exists('DMTP_Admin_Menu')) {
                 'fieldKeys' => array(
                     'teamsCheckbox' => 'field_dmtp_selected_teams',
                     'performanceRepeater' => 'field_dmtp_member_performance',
-                    'memberNameSubField' => 'field_performance_member_name' // Key of the name sub-field within the repeater
+                    'memberNameSubField' => 'field_performance_member_name',
+                    'sprintHotfixRepeater' => 'field_sprint_team_hotfixes',
+                    'hotfixTeamSelect' => 'field_sprint_hotfix_team_name',
                 ),
                  // Add translatable strings for JS
                 'i18n' => array(

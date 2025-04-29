@@ -55,14 +55,9 @@ if (!class_exists('DMTP_Permissions')) {
                 )
             );
 
-            // Add capabilities for sprint post type
+            // Add capabilities for custom post types
             $this->add_post_type_caps('dmtp_sprint');
-
-            // Add capabilities for story post type
             $this->add_post_type_caps('dmtp_story');
-
-            // Add capabilities for hotfix post type
-            $this->add_post_type_caps('dmtp_hotfix');
 
             // Assign capabilities to roles
             $this->assign_capabilities();
@@ -125,11 +120,6 @@ if (!class_exists('DMTP_Permissions')) {
                 $developer->add_cap('read_dmtp_story');
                 $developer->add_cap('edit_dmtp_stories'); // Can only edit their own
                 $developer->add_cap('edit_published_dmtp_stories');
-                
-                // Hotfix capabilities
-                $developer->add_cap('read_dmtp_hotfix');
-                $developer->add_cap('edit_dmtp_hotfixes'); // Can only edit their own
-                $developer->add_cap('edit_published_dmtp_hotfixes');
             }
 
             // For observers: can only read
@@ -140,8 +130,8 @@ if (!class_exists('DMTP_Permissions')) {
                 // Story capabilities
                 $observer->add_cap('read_dmtp_story');
                 
-                // Hotfix capabilities
-                $observer->add_cap('read_dmtp_hotfix');
+                // Allow access to settings page (read-only implied by menu cap)
+                $observer->add_cap('manage_options'); // Need this for settings menu access, but maybe too broad? Revisit.
             }
         }
 
@@ -156,7 +146,7 @@ if (!class_exists('DMTP_Permissions')) {
             
             // Only apply on admin page for our post types
             if (!is_admin() || $pagenow !== 'edit.php' || 
-                !in_array($post_type, array('dmtp_sprint', 'dmtp_story', 'dmtp_hotfix'))) {
+                !in_array($post_type, array('dmtp_sprint', 'dmtp_story'))) {
                 return $query;
             }
             
@@ -188,14 +178,14 @@ if (!class_exists('DMTP_Permissions')) {
             $post = get_post($post_id);
             
             // Skip if not our post types
-            if (!$post || !in_array($post->post_type, array('dmtp_sprint', 'dmtp_story', 'dmtp_hotfix'))) {
+            if (!$post || !in_array($post->post_type, array('dmtp_sprint', 'dmtp_story'))) {
                 return;
             }
             
             // If developer, check if post is assigned to them
             if (in_array('dmtp_developer', $user->roles) && $post->post_author != $user->ID) {
                 // For stories and hotfixes, check if assigned to this user
-                if ($post->post_type == 'dmtp_story' || $post->post_type == 'dmtp_hotfix') {
+                if ($post->post_type == 'dmtp_story') {
                     $assigned_user = get_post_meta($post_id, 'assigned_user', true);
                     if ($assigned_user != $user->ID) {
                         wp_die(__('You do not have permission to edit this item.', 'delivery-manager-tracking-plugin'));

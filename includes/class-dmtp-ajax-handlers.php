@@ -430,5 +430,60 @@ if (!class_exists('DMTP_Ajax_Handlers')) {
             
             wp_send_json_success(array('developers' => $developers));
         }
+
+        /**
+         * Get sprints associated with a specific team for filter dropdowns.
+         *
+         * AJAX Action: dmtp_get_sprints_for_team_filter
+         */
+        public function get_sprints_for_team_filter() {
+            // 1. Security Check
+            if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'dmtp_ajax_nonce')) {
+                wp_send_json_error(array('message' => 'Nonce verification failed'));
+                return;
+            }
+            
+            // 2. Get and Sanitize Input
+            if (!isset($_POST['team_name']) || empty($_POST['team_name'])) {
+                wp_send_json_error(array('message' => 'Team name is required.'));
+                return;
+            }
+            $team_name = sanitize_text_field($_POST['team_name']);
+            
+            // 3. Query Sprints
+            $sprints = array();
+            $args = array(
+                'post_type' => 'dmtp_sprint',
+                'posts_per_page' => -1, // Get all matching sprints
+                'post_status' => 'publish',
+                'orderby' => 'title', // Or 'meta_value' for date, etc.
+                'order' => 'DESC',    // Or 'ASC'
+                'meta_query' => array(
+                    array(
+                        'key' => 'selected_teams', // The ACF checkbox field slug
+                        'value' => '"' . $team_name . '"', // ACF stores checkbox values serialized like: a:1:{i:0;s:8:"TeamName";}
+                        'compare' => 'LIKE' // Check if the team name exists within the serialized array
+                    )
+                ),
+                'fields' => 'ids' // Only fetch IDs for performance
+            );
+            
+            $sprint_ids = get_posts($args);
+            
+            // 4. Format Response
+            if (!empty($sprint_ids)) {
+                foreach ($sprint_ids as $sprint_id) {
+                    $sprints[] = array(
+                        'id' => $sprint_id,
+                        'title' => get_the_title($sprint_id)
+                    );
+                }
+                // Optionally sort by title again if needed after fetching titles
+                // usort($sprints, function($a, $b) { return strcmp($a['title'], $b['title']); });
+            }
+            
+            // 5. Send JSON Response
+            wp_send_json_success(array('sprints' => $sprints));
+        }
     }
 } 

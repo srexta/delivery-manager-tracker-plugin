@@ -19,7 +19,7 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 delete_option('dmtp_settings');
 
 // Get all custom post types
-$post_types = array('dmtp_sprint', 'dmtp_story', 'dmtp_hotfix');
+$post_types = array('dmtp_sprint', 'dmtp_story');
 
 // Delete all posts for each custom post type
 foreach ($post_types as $post_type) {
