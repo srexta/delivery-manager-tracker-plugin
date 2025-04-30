@@ -56,9 +56,9 @@
                 $(this).find('td').each(function() {
                     var cellText = $(this).text().trim();
                     var $link = $(this).find('a');
-                    // If the cell contains a link and the text is just 'Link', use the href
-                    if ($link.length > 0 && cellText.toLowerCase() === 'link') { 
-                         cellText = $link.attr('href');
+                    // Always export the href of the first <a> tag if present
+                    if ($link.length > 0) {
+                        cellText = $link.attr('href');
                     }
                     row.push('"' + cellText.replace(/"/g, '""') + '"'); // Basic CSV escaping
                 });
