@@ -182,6 +182,13 @@ if (!class_exists('DMTP_Post_Types')) {
                 'title' => 'Sprint Details',
                 'fields' => array(
                     array(
+                        'key' => 'tab_general',
+                        'label' => 'General',
+                        'type' => 'tab',
+                        'placement' => 'top',
+                        'endpoint' => 0,
+                    ),
+                    array(
                         'key' => 'field_sprint_start_date',
                         'label' => 'Start Date',
                         'name' => 'start_date',
@@ -211,6 +218,13 @@ if (!class_exists('DMTP_Post_Types')) {
                         'tabs' => 'all',
                         'toolbar' => 'full',
                         'media_upload' => 1,
+                    ),
+                    array(
+                        'key' => 'tab_teams',
+                        'label' => 'Teams',
+                        'type' => 'tab',
+                        'placement' => 'top',
+                        'endpoint' => 0,
                     ),
                     array(
                         'key' => 'field_dmtp_selected_teams',
@@ -330,6 +344,13 @@ if (!class_exists('DMTP_Post_Types')) {
                         ),
                     ),
                     array(
+                        'key' => 'tab_hotfixes',
+                        'label' => 'Hotfixes',
+                        'type' => 'tab',
+                        'placement' => 'top',
+                        'endpoint' => 0,
+                    ),
+                    array(
                         'key' => 'field_sprint_team_hotfixes',
                         'label' => 'Team Hotfixes for this Sprint',
                         'name' => 'sprint_team_hotfixes',
@@ -411,6 +432,24 @@ if (!class_exists('DMTP_Post_Types')) {
                                 ),
                             ),
                         ),
+                    ),
+                    array(
+                        'key' => 'tab_notes',
+                        'label' => 'Notes',
+                        'type' => 'tab',
+                        'placement' => 'top',
+                        'endpoint' => 0,
+                    ),
+                    array(
+                        'key' => 'field_sprint_retrospective_note',
+                        'label' => 'Retrospective Note',
+                        'name' => 'retrospective_note',
+                        'type' => 'wysiwyg',
+                        'instructions' => 'Enter notes from the sprint retrospective meeting',
+                        'required' => 0,
+                        'tabs' => 'all',
+                        'toolbar' => 'full',
+                        'media_upload' => 1,
                     ),
                 ),
                 'location' => array(

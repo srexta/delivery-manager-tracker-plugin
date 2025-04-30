@@ -5,17 +5,21 @@
  * @package DMTP
  */
 
-// Get available sprints
-$sprint_args = array(
-    'post_type' => 'dmtp_sprint',
-    'posts_per_page' => -1,
-    'orderby' => 'title',
-    'order' => 'ASC',
-);
-$sprints = get_posts($sprint_args);
+// --- Get available teams from ACF Options ---
+$available_teams = array();
+if (function_exists('have_rows') && have_rows('dmtp_teams', 'option')) {
+    while (have_rows('dmtp_teams', 'option')) : the_row();
+        $team_name = get_sub_field('team_name');
+        if ($team_name) {
+            $available_teams[esc_attr($team_name)] = esc_html($team_name);
+        }
+    endwhile;
+    reset_rows();
+}
 
-// Get selected sprint
-$selected_sprint = isset($_GET['sprint_id']) ? intval($_GET['sprint_id']) : 0;
+// --- Get selected filters ---
+$selected_team_name = isset($_GET['notes_team_filter']) ? sanitize_text_field($_GET['notes_team_filter']) : '';
+$selected_sprint_id = isset($_GET['sprint_id']) ? intval($_GET['sprint_id']) : 0;
 
 ?>
 <div class="wrap">
@@ -23,31 +27,51 @@ $selected_sprint = isset($_GET['sprint_id']) ? intval($_GET['sprint_id']) : 0;
     
     <p><?php echo esc_html__('View planning and retrospective notes for a selected sprint.', 'delivery-manager-tracking-plugin'); ?></p>
     
-    <!-- Filters for sprint -->
+    <!-- Filters for team and sprint -->
     <div class="dmtp-filters">
         <form method="get">
             <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>" />
-            
-            <label for="sprint_id"><?php esc_html_e('Select Sprint:', 'delivery-manager-tracking-plugin'); ?></label>
-            <select id="sprint_id" name="sprint_id">
-                <option value="0"><?php esc_html_e('-- Select a Sprint --', 'delivery-manager-tracking-plugin'); ?></option>
-                <?php foreach ($sprints as $sprint) : ?>
-                    <option value="<?php echo esc_attr($sprint->ID); ?>" <?php selected($selected_sprint, $sprint->ID); ?>>
-                        <?php echo esc_html($sprint->post_title); ?>
+
+            <!-- Team Dropdown -->
+            <label for="notes_team_filter" style="padding-right: 5px;"> <?php esc_html_e('Select Team:', 'delivery-manager-tracking-plugin'); ?> </label>
+            <select id="notes_team_filter" name="notes_team_filter" style="margin-right: 15px;">
+                <option value=""><?php esc_html_e('-- Select Team --', 'delivery-manager-tracking-plugin'); ?></option>
+                <?php foreach ($available_teams as $value => $label) : ?>
+                    <option value="<?php echo $value; ?>" <?php selected($selected_team_name, $value); ?>>
+                        <?php echo $label; ?>
                     </option>
                 <?php endforeach; ?>
+                <?php if (empty($available_teams)): ?>
+                    <option value="" disabled><?php esc_html_e('No teams defined in Settings', 'delivery-manager-tracking-plugin'); ?></option>
+                <?php endif; ?>
             </select>
-            
+
+            <!-- Sprint Dropdown (AJAX) -->
+            <label for="sprint_id" style="padding-right: 5px;"> <?php esc_html_e('Select Sprint:', 'delivery-manager-tracking-plugin'); ?> </label>
+            <select id="sprint_id" name="sprint_id" disabled>
+                <?php if ($selected_team_name && $selected_sprint_id):
+                    $selected_sprint_title = get_the_title($selected_sprint_id);
+                    if ($selected_sprint_title) {
+                        echo '<option value="' . esc_attr($selected_sprint_id) . '" selected>' . esc_html($selected_sprint_title) . '</option>';
+                    } else {
+                        echo '<option value="">' . esc_html__('-- Select Team First --', 'delivery-manager-tracking-plugin') . '</option>';
+                    }
+                ?>
+                <?php else: ?>
+                    <option value=""><?php esc_html_e('-- Select Team First --', 'delivery-manager-tracking-plugin'); ?></option>
+                <?php endif; ?>
+            </select>
+
             <input type="submit" value="<?php esc_attr_e('View Notes', 'delivery-manager-tracking-plugin'); ?>" class="button">
         </form>
     </div>
-    
+
     <!-- Notes display area -->
     <div class="dmtp-notes-display">
-        <?php if ($selected_sprint) : 
-            $sprint_post = get_post($selected_sprint);
-            $planning_note = get_post_meta($selected_sprint, 'planning_note', true);
-            $retrospective_note = get_post_meta($selected_sprint, 'retrospective_note', true);
+        <?php if ($selected_sprint_id) : 
+            $sprint_post = get_post($selected_sprint_id);
+            $planning_note = get_post_meta($selected_sprint_id, 'planning_note', true);
+            $retrospective_note = get_post_meta($selected_sprint_id, 'retrospective_note', true);
         ?>
             <h2><?php printf(esc_html__('Notes for Sprint: %s', 'delivery-manager-tracking-plugin'), esc_html($sprint_post->post_title)); ?></h2>
             
@@ -78,7 +102,7 @@ $selected_sprint = isset($_GET['sprint_id']) ? intval($_GET['sprint_id']) : 0;
             </div>
             
         <?php else : ?>
-            <p><?php esc_html_e('Select a sprint from the dropdown above to view its notes.', 'delivery-manager-tracking-plugin'); ?></p>
+            <p><?php esc_html_e('Select a team and sprint from the dropdowns above to view its notes.', 'delivery-manager-tracking-plugin'); ?></p>
         <?php endif; ?>
     </div>
 </div> 

@@ -115,9 +115,9 @@ $available_teams = array(
                 // Add team filter if provided
                 if (!empty($team_filter)) {
                     $meta_query[] = array(
-                        'key' => 'assigned_team',
-                        'value' => $team_filter,
-                        'compare' => '=',
+                        'key' => 'selected_teams',
+                        'value' => '"' . $team_filter . '"',
+                        'compare' => 'LIKE',
                     );
                 }
                 

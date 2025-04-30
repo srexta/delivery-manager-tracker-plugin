@@ -414,6 +414,58 @@ function downloadData(data, filename, format) {
             }
         }
 
+        // --- Dynamic Sprint Dropdown for Notes Section ---
+        var $notesTeamFilter = $('#notes_team_filter');
+        var $notesSprintSelect = $('#sprint_id');
+        if ($notesTeamFilter.length) {
+            function populateSprintsForNotes(selectedTeam) {
+                if (selectedTeam) {
+                    $notesSprintSelect.prop('disabled', true).html('<option value="">Loading Sprints...</option>');
+                    $.ajax({
+                        url: dmtp_localized_data.ajax_url,
+                        type: 'POST',
+                        data: {
+                            action: 'dmtp_get_sprints_for_team_filter',
+                            nonce: dmtp_localized_data.nonce,
+                            team_name: selectedTeam
+                        },
+                        success: function(response) {
+                            $notesSprintSelect.prop('disabled', false).empty();
+                            $notesSprintSelect.append('<option value="">-- Select Sprint --</option>');
+                            if (response.success && response.data.sprints && response.data.sprints.length > 0) {
+                                $.each(response.data.sprints, function(index, sprint) {
+                                    var option = '<option value="' + sprint.id + '">' + sprint.title + '</option>';
+                                    $notesSprintSelect.append(option);
+                                });
+                                // If a sprint was already selected (e.g. from GET param), try to re-select it
+                                var currentSprintId = new URLSearchParams(window.location.search).get('sprint_id');
+                                if (currentSprintId && $notesSprintSelect.find('option[value="' + currentSprintId + '"]').length > 0) {
+                                    $notesSprintSelect.val(currentSprintId);
+                                }
+                            } else if (response.success) {
+                                $notesSprintSelect.append('<option value="" disabled>No sprints found for this team</option>');
+                            } else {
+                                console.error('Error fetching sprints:', response.data.message);
+                                $notesSprintSelect.prop('disabled', true).html('<option value="">Error loading sprints</option>');
+                            }
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.error('AJAX Error fetching sprints:', textStatus, errorThrown);
+                            $notesSprintSelect.prop('disabled', true).html('<option value="">AJAX Error</option>');
+                        }
+                    });
+                } else {
+                    $notesSprintSelect.prop('disabled', true).html('<option value="">-- Select Team First --</option>');
+                }
+            }
+            $notesTeamFilter.on('change', function() {
+                populateSprintsForNotes($(this).val());
+            });
+            if ($notesTeamFilter.val()) {
+                populateSprintsForNotes($notesTeamFilter.val());
+            }
+        }
+
         // --- ACF Dependent Logic --- 
         // Only run if acf object exists AND is ready
         if (typeof acf !== 'undefined') {

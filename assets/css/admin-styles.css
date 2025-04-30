@@ -8,4 +8,255 @@
 
 .dmtp-detail {
     margin-bottom: 5px;
+}
+
+/* Modern blue card-based admin UI inspired by provided screenshot */
+
+body .wrap, .acf-fields {
+    background: #fff;
+    border: 1.5px solid #d0e3fa;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(33, 118, 210, 0.07);
+    padding: 32px 32px 24px 32px;
+    margin-top: 32px;
+    margin-bottom: 32px;
+}
+
+/* Tabs */
+.acf-tab-group {
+    display: flex;
+    border-bottom: none;
+    margin-bottom: 32px;
+    background: none;
+}
+.acf-tab-group li {
+    margin-right: 12px;
+}
+.acf-tab-group li a {
+    display: block;
+    background: #f2f7fd;
+    color: #2176d2;
+    border: none;
+    border-radius: 12px 12px 0 0;
+    font-weight: 600;
+    font-size: 1.15em;
+    padding: 14px 36px;
+    transition: background 0.2s, color 0.2s;
+    box-shadow: none;
+    outline: none;
+}
+.acf-tab-group li.active a {
+    background: linear-gradient(90deg, #2176d2 0%, #5eaefd 100%);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(33, 118, 210, 0.10);
+}
+
+/* Section headers */
+.acf-fields > .acf-field-tab > .acf-label label,
+.dmtp-section-title, .acf-label label {
+    color: #2176d2;
+    font-size: 1.25em;
+    font-weight: 700;
+    margin-bottom: 18px;
+    letter-spacing: 0.01em;
+}
+
+/* Card-like containers for repeaters and tables */
+.acf-repeater, .acf-table, .wp-list-table, .acf-field, .acf-fields > .acf-field {
+    background: #f8fbff;
+    border-radius: 12px;
+    border: 1px solid #d0e3fa !important;
+    box-shadow: 0 2px 8px rgba(33, 118, 210, 0.04);
+    margin-bottom: 24px;
+    padding: 18px 18px 12px 18px;
+}
+
+/* Table headers and cells */
+.wp-list-table th, .wp-list-table td, .acf-table th, .acf-table td {
+    border-color: #d0e3fa !important;
+    font-size: 1em;
+    padding: 10px 14px;
+}
+
+/* Modern blue buttons */
+.wp-core-ui .button, .button, .acf-button {
+    background: linear-gradient(90deg, #2176d2 0%, #5eaefd 100%);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1.08em;
+    padding: 12px 32px;
+    box-shadow: 0 2px 8px rgba(33, 118, 210, 0.10);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+.wp-core-ui .button:hover, .button:hover, .acf-button:hover {
+    background: linear-gradient(90deg, #185a9d 0%, #2176d2 100%);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(33, 118, 210, 0.13);
+}
+
+/* Toggle switches (for ACF true/false UI) */
+.acf-field-true_false .acf-switch {
+    display: inline-block;
+    position: relative;
+    width: 54px;
+    height: 28px;
+    background: #e6f0fa;
+    border-radius: 16px;
+    border: 1.5px solid #b3d1f7;
+    box-shadow: 0 2px 8px rgba(33, 118, 210, 0.07);
+    vertical-align: middle;
+    margin: 0 8px 0 0;
+    transition: background 0.2s, border 0.2s;
+    overflow: hidden;
+}
+.acf-field-true_false .acf-switch.on {
+    background: linear-gradient(90deg, #2176d2 0%, #5eaefd 100%);
+    border-color: #2176d2;
+}
+.acf-field-true_false .acf-switch span {
+    position: absolute;
+    left: 4px;
+    top: 3px;
+    width: 22px;
+    height: 22px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(33, 118, 210, 0.10);
+    transition: left 0.2s;
+    z-index: 2;
+}
+.acf-field-true_false .acf-switch.on span {
+    left: 28px;
+}
+.acf-field-true_false .acf-switch-label {
+    position: absolute;
+    width: 100%;
+    left: 0;
+    top: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1em;
+    font-weight: 600;
+    color: #2176d2;
+    z-index: 1;
+    pointer-events: none;
+    transition: color 0.2s;
+}
+.acf-field-true_false .acf-switch.on .acf-switch-label {
+    color: #fff;
+}
+
+/* Remove any vertical blue bar or border from the switch */
+.acf-field-true_false .acf-switch:before,
+.acf-field-true_false .acf-switch:after {
+    display: none !important;
+}
+
+/* Table/repeater alignment fix */
+.acf-field-true_false .acf-input {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+/* Remove extra margin/padding from true/false field in table */
+.acf-field-true_false .acf-input input[type="checkbox"] {
+    display: none;
+}
+
+/* Inputs and selects */
+input[type="text"], input[type="email"], input[type="number"], select, textarea {
+    border: 1.5px solid #b3d1f7 !important;
+    border-radius: 6px !important;
+    background: #f8fbff !important;
+    font-size: 1.08em;
+    padding: 10px 14px !important;
+    transition: border 0.2s;
+}
+input[type="text"]:focus, input[type="email"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+    border-color: #2176d2 !important;
+    background: #fff !important;
+}
+
+/* Add media button style */
+.wp-media-buttons .button {
+    background: #e6f0fa;
+    color: #2176d2;
+    border: 1.5px solid #b3d1f7;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1em;
+    padding: 8px 18px;
+    margin-bottom: 10px;
+    transition: background 0.2s, color 0.2s;
+}
+.wp-media-buttons .button:hover {
+    background: #2176d2;
+    color: #fff;
+}
+
+/* General spacing and font */
+body .acf-fields, body .wrap {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    font-size: 1.08em;
+    letter-spacing: 0.01em;
+}
+
+/* Blue borders for tables and fields */
+.wp-list-table, .acf-fields, .acf-field, .acf-table, .acf-repeater.-table > table {
+    border-color: #b3d1f7 !important;
+}
+.wp-list-table th, .wp-list-table td, .acf-table th, .acf-table td {
+    border-color: #b3d1f7 !important;
+}
+
+/* Highlighted section headers */
+.acf-fields > .acf-field-tab > .acf-label label {
+    color: #2176d2;
+    font-size: 1.1em;
+    font-weight: 700;
+}
+
+/* Improve spacing for tabbed content */
+.acf-fields > .acf-field-tab {
+    margin-bottom: 0;
+}
+
+/* Add a subtle blue shadow to active tab content */
+.acf-fields > .acf-field-tab.active + .acf-field {
+    box-shadow: 0 2px 12px rgba(33, 118, 210, 0.07);
 } 
+
+
+.acf-tab-group li{
+    padding: 10px;
+    border-radius: 8px 8px 0px 0px;
+    background-color: rgb(12, 104, 233);
+    text-align: center;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    color: rgb(12, 104, 233);
+    transition: 0.3s;
+    opacity: 0.7;
+}
+.acf-tab-group li.active{
+    background-color: rgb(12, 104, 233);
+    color: rgb(255, 255, 255);
+    opacity: 1;
+}
+.acf-tab-group li a{
+    border:none!important;
+    background:none!important; 
+    color: white!important;
+}
+.acf-tab-group li.active a{
+    color: rgb(255, 255, 255);
+}
