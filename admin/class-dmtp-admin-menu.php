@@ -189,6 +189,17 @@ if (!class_exists('DMTP_Admin_Menu')) {
                 );
             }
             
+            // Enqueue notes copy script only on Notes Section page
+            if ($hook === 'delivery-manager_page_dmtp_notes_section') {
+                wp_enqueue_script(
+                    'dmtp-notes-copy',
+                    DMTP_PLUGIN_URL . 'admin/js/dmtp-notes-copy.js',
+                    array('jquery'),
+                    DMTP_VERSION,
+                    true
+                );
+            }
+            
             // Data to pass to script
             $script_data = array(
                 'ajax_url' => admin_url('admin-ajax.php'),

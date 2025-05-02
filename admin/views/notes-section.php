@@ -67,17 +67,24 @@ $selected_sprint_id = isset($_GET['sprint_id']) ? intval($_GET['sprint_id']) : 0
     </div>
 
     <!-- Notes display area -->
-    <div class="dmtp-notes-display">
+    <div class="dmtp-notes-display" id="dmtp-notes-display">
         <?php if ($selected_sprint_id) : 
             $sprint_post = get_post($selected_sprint_id);
             $planning_note = get_post_meta($selected_sprint_id, 'planning_note', true);
             $retrospective_note = get_post_meta($selected_sprint_id, 'retrospective_note', true);
         ?>
+            <button class="dmtp-copy-notes-btn" type="button">Copy Notes</button>
+            <span id="dmtp-copy-notes-msg" style="display:none;position:absolute;top:22px;right:140px;color:#2176d2;font-weight:600;">Copied!</span>
             <h2><?php printf(esc_html__('Notes for Sprint: %s', 'delivery-manager-tracking-plugin'), esc_html($sprint_post->post_title)); ?></h2>
             
             <div class="dmtp-note-section">
                 <h3><?php esc_html_e('Planning Notes', 'delivery-manager-tracking-plugin'); ?></h3>
-                <div class="dmtp-note-content">
+                <button class="dmtp-copy-planning-btn dmtp-copy-notes-btn" type="button" style="float:right;margin-top:-6px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="none" style="vertical-align:middle;margin-right:8px;position:relative;top:-1px;"><rect x="6" y="6" width="10" height="12" rx="2" fill="#fff" stroke="#2176d2" stroke-width="1.5"/><rect x="4" y="2" width="10" height="12" rx="2" fill="#e6f0fa" stroke="#2176d2" stroke-width="1.5"/></svg>
+                    Copy Planning
+                </button>
+                <span class="dmtp-copy-planning-msg" style="display:none;margin-left:10px;color:#2176d2;font-weight:600;">Copied!</span>
+                <div class="dmtp-note-content" id="dmtp-planning-note-content">
                     <?php 
                     if (!empty($planning_note)) {
                         echo wp_kses_post($planning_note);
@@ -90,7 +97,12 @@ $selected_sprint_id = isset($_GET['sprint_id']) ? intval($_GET['sprint_id']) : 0
             
             <div class="dmtp-note-section">
                 <h3><?php esc_html_e('Retrospective Notes', 'delivery-manager-tracking-plugin'); ?></h3>
-                <div class="dmtp-note-content">
+                <button class="dmtp-copy-retro-btn dmtp-copy-notes-btn" type="button" style="float:right;margin-top:-6px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="none" style="vertical-align:middle;margin-right:8px;position:relative;top:-1px;"><rect x="6" y="6" width="10" height="12" rx="2" fill="#fff" stroke="#2176d2" stroke-width="1.5"/><rect x="4" y="2" width="10" height="12" rx="2" fill="#e6f0fa" stroke="#2176d2" stroke-width="1.5"/></svg>
+                    Copy Retrospective
+                </button>
+                <span class="dmtp-copy-retro-msg" style="display:none;margin-left:10px;color:#2176d2;font-weight:600;">Copied!</span>
+                <div class="dmtp-note-content" id="dmtp-retro-note-content">
                     <?php 
                     if (!empty($retrospective_note)) {
                         echo wp_kses_post($retrospective_note);
@@ -100,7 +112,6 @@ $selected_sprint_id = isset($_GET['sprint_id']) ? intval($_GET['sprint_id']) : 0
                     ?>
                 </div>
             </div>
-            
         <?php else : ?>
             <p><?php esc_html_e('Select a team and sprint from the dropdowns above to view its notes.', 'delivery-manager-tracking-plugin'); ?></p>
         <?php endif; ?>

@@ -171,7 +171,7 @@ body .wrap, .acf-fields {
 }
 
 /* Inputs and selects */
-input[type="text"], input[type="email"], input[type="number"], select, textarea {
+input[type="text"], input[type="email"], input[type="number"],input[type="date"],input[type="time"],input[type="search"], select, textarea {
     border: 1.5px solid #b3d1f7 !important;
     border-radius: 6px !important;
     background: #f8fbff !important;
@@ -259,4 +259,65 @@ body .acf-fields, body .wrap {
 }
 .acf-tab-group li.active a{
     color: rgb(255, 255, 255);
+}
+
+/* Notes display card styling */
+.dmtp-notes-display {
+    background: #f8fbff;
+    border: 1.5px solid #b3d1f7;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(33, 118, 210, 0.07);
+    padding: 32px 28px 24px 28px;
+    margin: 32px 0 24px 0;
+    position: relative;
+    min-height: 120px;
+    font-size: 1.08em;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    transition: box-shadow 0.2s;
+}
+.dmtp-notes-display:active, .dmtp-notes-display:focus-within {
+    box-shadow: 0 4px 24px rgba(33, 118, 210, 0.13);
+}
+
+.dmtp-note-section {
+    margin-bottom: 28px;
+}
+.dmtp-note-section h3 {
+    color: #2176d2;
+    font-size: 1.15em;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+.dmtp-note-content {
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #e6f0fa;
+    padding: 18px 16px;
+    min-height: 48px;
+    font-size: 1.04em;
+    word-break: break-word;
+    user-select: text;
+}
+
+/* Copy notes button */
+.dmtp-copy-notes-btn {
+    position: absolute;
+    top: 18px;
+    right: 24px;
+    background: linear-gradient(90deg, #2176d2 0%, #5eaefd 100%);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1em;
+    padding: 8px 22px;
+    box-shadow: 0 2px 8px rgba(33, 118, 210, 0.10);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    z-index: 2;
+}
+.dmtp-copy-notes-btn:hover {
+    background: linear-gradient(90deg, #185a9d 0%, #2176d2 100%);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(33, 118, 210, 0.13);
 }
