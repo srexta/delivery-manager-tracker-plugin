@@ -13,12 +13,17 @@ $start_filter = isset($_GET['start_date']) ? sanitize_text_field($_GET['start_da
 $end_filter = isset($_GET['end_date']) ? sanitize_text_field($_GET['end_date']) : '';
 $team_filter = isset($_GET['team']) ? sanitize_text_field($_GET['team']) : '';
 
-// Get available teams (from ACF field definition or hardcode for now)
-// Note: Ideally, fetch choices dynamically from ACF field group if possible
-$available_teams = array(
-    'wptravelengine' => 'Wptravelengine',
-    'tripcart' => 'TripCart',
-);
+// Get available teams dynamically from ACF Options
+$available_teams = array();
+if (function_exists('have_rows') && have_rows('dmtp_teams', 'option')) {
+    while (have_rows('dmtp_teams', 'option')) : the_row();
+        $team_name = get_sub_field('team_name');
+        if ($team_name) {
+            $available_teams[esc_attr($team_name)] = esc_html($team_name);
+        }
+    endwhile;
+    reset_rows(); // Important after looping options repeater
+}
 
 ?>
 <div class="wrap">

@@ -1,0 +1,133 @@
+# Delivery Manager Plugin Metrics Documentation
+
+This document explains all the metrics fields, what they mean, and how they are calculated in the Delivery Manager Tracker Plugin. Metrics are grouped under three pillars:
+
+1. Quality of Work
+2. Timely Delivery
+3. Cost Effective
+
+---
+
+## 1. Quality of Work
+Measures the thoroughness, reliability, and technical excellence of the sprint deliverables.
+
+**Key Metrics:**
+
+- **qa_coverage_percent**
+  - *Type:* Number (0–100)
+  - *Description:* Percentage of code covered by tests in this sprint.
+
+- **test_case_count**
+  - *Type:* Number
+  - *Description:* Number of test cases written/executed for this sprint.
+
+- **bugs_found**
+  - *Type:* Number
+  - *Description:* Number of bugs found during the sprint.
+
+- **bug_density**
+  - *Type:* Number (calculated)
+  - *Description:* Bugs per story point (lower is better).
+  - *Formula:* `Bug Density = Bugs Found / Total Story Points`
+
+- **code_review_status**
+  - *Type:* Text
+  - *Description:* Status of code review for the sprint (e.g., 'pending', 'approved', 'rejected').
+
+- **reviewed_by**
+  - *Type:* Text
+  - *Description:* Name or ID of the person who performed the code review.
+
+- **review_lag_days**
+  - *Type:* Number
+  - *Description:* Number of days between sprint completion and code review.
+
+- **solution_type**
+  - *Type:* Select ('QuickFix', 'Refactor', 'Redesign')
+  - *Description:* Type of solution applied for major issues in the sprint.
+
+- **quality_score**
+  - *Type:* Number (0–100)
+  - *Description:* Quality score for the sprint (higher is better).
+  - *How to use:* Set manually or calculate based on QA coverage, bug count, etc.
+
+- **root_cause_type**
+  - *Type:* Select ('Logic', 'Testing', 'Requirement Gap')
+  - *Description:* Main root cause for hotfixes or issues in the sprint.
+
+---
+
+## 2. Timely Delivery
+Measures how well the team delivers on time and meets commitments.
+
+**Key Metrics:**
+
+- **deadline_met**
+  - *Type:* True/False
+  - *Description:* Whether the sprint deadline was met (Yes/No).
+
+- **delay_days**
+  - *Type:* Number
+  - *Description:* Number of days the sprint was delayed (if any).
+
+- **priority_level**
+  - *Type:* Select ('High', 'Medium', 'Low')
+  - *Description:* Priority level of the sprint.
+
+- **delivery_score**
+  - *Type:* Number (0–100)
+  - *Description:* Delivery performance score for the sprint (higher is better).
+  - *How to use:* Set manually or calculate based on timely delivery and output.
+
+- **productivity_ratio**
+  - *Type:* Number (calculated)
+  - *Description:* Measures developer productivity for the sprint.
+  - *Formula:*
+    - For each member: `Productivity Ratio = Delivered Story Points / Estimated Hours`
+    - For the sprint: The plugin uses the first member's values or a summary if available.
+
+- **non_productive_flag**
+  - *Type:* True/False
+  - *Description:* Indicates if any member was flagged as non-productive (Yes/No).
+
+- **overtime_hours**
+  - *Type:* Number
+  - *Description:* Total overtime hours logged in the sprint.
+
+---
+
+## 3. Cost Effective
+Measures how efficiently the team delivers value relative to cost and resources used.
+
+**Key Metrics:**
+
+- **cost_score**
+  - *Type:* Number (0–100)
+  - *Description:* Cost efficiency score for the sprint (higher is better, 100 is best).
+  - *How to use:* Set manually or calculate based on budget adherence.
+
+- **cost_flag**
+  - *Type:* Select ('High', 'Low')
+  - *Description:* Indicates if the sprint was high or low cost/impact.
+
+---
+
+## Dashboard Widget Calculations
+
+- **Best Quality Sprint:** The sprint with the highest `quality_score`.
+- **Top Developer:** The member (across all sprints) with the highest productivity ratio.
+- **Non-Productive Members:** Count of all members flagged with `non_productive_flag` in any sprint.
+- **Sprints Over Budget/Deadline:** Sprints where `delay_days > 0` or `cost_score < 60` (threshold).
+- **Average Scores (Bar Chart):** Average of `quality_score`, `delivery_score`, and `cost_score` across all sprints.
+- **Trends Over Time (Line Chart):** Plots the last 10 sprints' `quality_score`, `delivery_score`, and `cost_score` as lines, with sprint titles as X-axis labels.
+
+---
+
+## Notes
+- Some metrics (like productivity_ratio, bug_density, health_score) are auto-calculated and saved when a sprint is saved.
+- Others (like cost_score, delivery_score, quality_score) can be set manually or by your own logic.
+- All calculations use ACF fields and are visible in the Sprint edit screen and admin tables.
+
+---
+
+For further customization or clarification, see the plugin code or ask your developer/maintainer. 

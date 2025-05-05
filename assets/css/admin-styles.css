@@ -321,3 +321,26 @@ body .acf-fields, body .wrap {
     color: #fff;
     box-shadow: 0 4px 16px rgba(33, 118, 210, 0.13);
 }
+
+/* Style only input, select, and number fields inside the member performance repeater, not the editor */
+.dmtp-member-performance-repeater input[type="text"],
+.dmtp-member-performance-repeater input[type="number"],
+.dmtp-member-performance-repeater input[type="date"],
+.dmtp-member-performance-repeater input[type="time"],
+.dmtp-member-performance-repeater input[type="search"],
+.dmtp-member-performance-repeater select,
+.dmtp-member-performance-repeater textarea:not(.acf-editor-wysiwyg) {
+    border: 2px solid #2176d2 !important;
+    background: #e6f0fa !important;
+    border-radius: 8px !important;
+    font-size: 1.08em;
+    padding: 10px 14px !important;
+    box-shadow: 0 2px 8px rgba(33, 118, 210, 0.07);
+    transition: border 0.2s, background 0.2s;
+}
+.dmtp-member-performance-repeater input:focus,
+.dmtp-member-performance-repeater select:focus,
+.dmtp-member-performance-repeater textarea:focus {
+    border-color: #185a9d !important;
+    background: #fff !important;
+}
