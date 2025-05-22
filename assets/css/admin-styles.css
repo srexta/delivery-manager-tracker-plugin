@@ -344,3 +344,7 @@ body .acf-fields, body .wrap {
     border-color: #185a9d !important;
     background: #fff !important;
 }
+
+.acf-row .select2-container.-acf .select2-selection--single .select2-selection__rendered{
+    white-space: nowrap!important;
+}

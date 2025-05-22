@@ -37,6 +37,15 @@ if (!class_exists('DMTP_Admin_Menu')) {
                 array($this, 'render_sprint_overview_page')
             );
 
+            add_submenu_page(
+                'dmtp_sprint_overview',
+                __('GitHub Status', 'delivery-manager-tracking-plugin'),
+                __('GitHub Status', 'delivery-manager-tracking-plugin'),
+                'read_dmtp_sprint',
+                'dmtp_github_status',
+                array($this, 'render_github_status_page')
+            );
+
             // Submenu: Individual Tracker
             add_submenu_page(
                 'dmtp_sprint_overview',
@@ -100,6 +109,13 @@ if (!class_exists('DMTP_Admin_Menu')) {
          */
         public function render_sprint_overview_page() {
             include DMTP_PLUGIN_DIR . 'admin/views/sprint-overview.php';
+        }
+
+         /**
+         * Render the GitHub Status page.
+         */
+        public function render_github_status_page() {
+            include DMTP_PLUGIN_DIR . 'admin/views/github-status.php';
         }
 
         /**
@@ -191,10 +207,19 @@ if (!class_exists('DMTP_Admin_Menu')) {
             
             // Enqueue notes copy script only on Notes Section page
             if ($hook === 'delivery-manager_page_dmtp_notes_section') {
+                // Enqueue clipboard.js from CDN
+                wp_enqueue_script(
+                    'clipboard-js',
+                    'https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js',
+                    array(),
+                    '2.0.11',
+                    true
+                );
+                // Enqueue the custom notes copy script, dependent on clipboard-js and jquery
                 wp_enqueue_script(
                     'dmtp-notes-copy',
                     DMTP_PLUGIN_URL . 'admin/js/dmtp-notes-copy.js',
-                    array('jquery'),
+                    array('clipboard-js', 'jquery'),
                     DMTP_VERSION,
                     true
                 );

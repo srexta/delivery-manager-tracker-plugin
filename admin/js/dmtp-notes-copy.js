@@ -1,39 +1,22 @@
 // dmtp-notes-copy.js
-(function($) {
-    $(document).ready(function() {
-        // Copy Planning Notes
-        $(document).on('click', '.dmtp-copy-planning-btn', function() {
-            var planning = $('#dmtp-planning-note-content').text() || '';
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(planning).then(function() {
-                    var msg = $('.dmtp-copy-planning-msg');
-                    if (msg.length) {
-                        msg.show();
-                        setTimeout(function(){ msg.fadeOut(300); }, 1500);
-                    }
-                }, function() {
-                    window.prompt('Copy to clipboard: Ctrl+C, Enter', planning);
-                });
-            } else {
-                window.prompt('Copy to clipboard: Ctrl+C, Enter', planning);
-            }
-        });
-        // Copy Retrospective Notes
-        $(document).on('click', '.dmtp-copy-retro-btn', function() {
-            var retro = $('#dmtp-retro-note-content').text() || '';
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(retro).then(function() {
-                    var msg = $('.dmtp-copy-retro-msg');
-                    if (msg.length) {
-                        msg.show();
-                        setTimeout(function(){ msg.fadeOut(300); }, 1500);
-                    }
-                }, function() {
-                    window.prompt('Copy to clipboard: Ctrl+C, Enter', retro);
-                });
-            } else {
-                window.prompt('Copy to clipboard: Ctrl+C, Enter', retro);
-            }
-        });
+jQuery(document).ready(function($) {
+    // Initialize clipboard.js for the planning copy button, copying HTML markup
+    var clipboard = new ClipboardJS('.dmtp-copy-planning-btn', {
+        text: function(trigger) {
+            return document.querySelector('#dmtp-planning-note-content').innerHTML;
+        }
     });
-})(jQuery); 
+
+    clipboard.on('success', function(e) {
+        var msg = $('.dmtp-copy-planning-msg');
+        if (msg.length) {
+            msg.show();
+            setTimeout(function(){ msg.fadeOut(300); }, 1500);
+        }
+        e.clearSelection();
+    });
+
+    clipboard.on('error', function(e) {
+        alert('Copy failed. Please try manually.');
+    });
+}); 
