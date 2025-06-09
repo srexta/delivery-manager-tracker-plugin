@@ -438,7 +438,7 @@ if (!class_exists('DMTP_Post_Types')) {
                                 'label' => 'Team',
                                 'name' => 'team_name',
                                 'type' => 'select',
-                                'choices' => array(), // Requires dynamic population hook/JS
+                                'choices' => self::dmtp_get_all_member_choices(), // Requires dynamic population hook/JS
                                 'allow_null' => 0,
                                 'required' => 1,
                                 'wrapper' => array('width' => '30'),
