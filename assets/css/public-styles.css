@@ -1706,4 +1706,111 @@
     .dmtp-verified-column {
         width: 60px;
     }
+}
+
+/* Notes Column Styling */
+.dmtp-notes-column {
+    text-align: center;
+    min-width: 80px;
+}
+
+.dmtp-view-notes-btn {
+    background: #007cba;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.dmtp-view-notes-btn:hover {
+    background: #005a87;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 124, 186, 0.3);
+}
+
+.dmtp-view-notes-btn.active {
+    background: #dc3545;
+    color: white;
+}
+
+.dmtp-view-notes-btn.active:hover {
+    background: #c82333;
+}
+
+.dmtp-no-notes {
+    color: #999;
+    font-style: italic;
+    font-size: 11px;
+}
+
+/* Member Notes Row Styling */
+.dmtp-member-notes-row {
+    background: #f8f9fa !important;
+    border-top: 1px solid #e9ecef !important;
+}
+
+.dmtp-member-notes-row .dmtp-member-notes-content {
+    padding: 12px 16px !important;
+    font-size: 12px !important;
+    color: #495057 !important;
+    line-height: 1.5;
+}
+
+.dmtp-notes-wrapper {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dmtp-notes-wrapper strong {
+    color: #007cba;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.dmtp-notes-text {
+    color: #495057;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+/* Remove old popup styles that are no longer needed */
+.dmtp-member-table-wrapper {
+    margin: 10px 0;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+/* Responsive adjustments for notes */
+@media (max-width: 768px) {
+    .dmtp-view-notes-btn {
+        font-size: 9px;
+        padding: 3px 6px;
+    }
+    
+    .dmtp-notes-column {
+        min-width: 60px;
+    }
+    
+    .dmtp-notes-wrapper {
+        margin: 0;
+        padding: 8px;
+    }
+    
+    .dmtp-notes-text {
+        font-size: 11px;
+    }
 } 

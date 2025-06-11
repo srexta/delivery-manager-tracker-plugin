@@ -935,12 +935,13 @@ if (!class_exists('DMTP_Public')) {
             $output .= '<th>Hotfixes</th>';
             $output .= '<th>Absent</th>';
             $output .= '<th>Rating</th>';
+            $output .= '<th>Notes</th>';
             $output .= '</tr>';
             $output .= '</thead>';
             
             // Table body
             $output .= '<tbody>';
-            foreach ($members as $member) {
+            foreach ($members as $member_index => $member) {
                 $member_name = !empty($member['member_name']) ? $member['member_name'] : 'Unknown';
                 $member_role = !empty($member['member_role']) ? $member['member_role'] : '-';
                 $estimated_hours = !empty($member['member_estimated_hours']) ? intval($member['member_estimated_hours']) : 0;
@@ -949,6 +950,7 @@ if (!class_exists('DMTP_Public')) {
                 $hotfixes = !empty($member['member_hotfixes_count']) ? intval($member['member_hotfixes_count']) : 0;
                 $absent_days = !empty($member['member_absent_days']) ? intval($member['member_absent_days']) : 0;
                 $rating = !empty($member['member_rating']) ? floatval($member['member_rating']) : 0;
+                $retrospective_notes = !empty($member['member_retrospective_notes']) ? $member['member_retrospective_notes'] : '';
                 
                 // Calculate velocity percentage
                 $velocity_percent = 0;
@@ -990,13 +992,27 @@ if (!class_exists('DMTP_Public')) {
                 $output .= '<td class="dmtp-hotfixes">' . esc_html($hotfixes) . '</td>';
                 $output .= '<td class="dmtp-absent-days">' . esc_html($absent_days) . 'd</td>';
                 $output .= '<td class="dmtp-rating ' . $rating_class . '">' . esc_html(number_format($rating, 1)) . '/5</td>';
+                
+                // Notes column with View Notes button
+                $output .= '<td class="dmtp-notes-column">';
+                if (!empty($retrospective_notes)) {
+                    $output .= '<button class="dmtp-view-notes-btn" data-member-index="' . esc_attr($member_index) . '">';
+                    $output .= '📝 View Notes';
+                    $output .= '</button>';
+                } else {
+                    $output .= '<span class="dmtp-no-notes">-</span>';
+                }
+                $output .= '</td>';
                 $output .= '</tr>';
                 
-                // Add retrospective notes row if available
-                if (!empty($member['member_retrospective_notes'])) {
-                    $output .= '<tr class="dmtp-member-notes-row">';
-                    $output .= '<td colspan="9" class="dmtp-member-notes">';
-                    $output .= '<strong>Notes:</strong> ' . esc_html($member['member_retrospective_notes']);
+                // Notes row (hidden by default) - only if notes exist
+                if (!empty($retrospective_notes)) {
+                    $output .= '<tr class="dmtp-member-notes-row" id="dmtp-notes-row-' . esc_attr($member_index) . '" style="display: none;">';
+                    $output .= '<td colspan="10" class="dmtp-member-notes-content">';
+                    $output .= '<div class="dmtp-notes-wrapper">';
+                    $output .= '<strong>📝 Notes:</strong>';
+                    $output .= '<div class="dmtp-notes-text">' . wp_kses_post($retrospective_notes) . '</div>';
+                    $output .= '</div>';
                     $output .= '</td>';
                     $output .= '</tr>';
                 }

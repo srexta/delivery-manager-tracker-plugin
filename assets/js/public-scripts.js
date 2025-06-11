@@ -15,6 +15,8 @@
         setupTooltips();
         setupMemberToggle();
         setupTaskStatusUpdates();
+        setupViewNotesButtons();
+        handleResponsive();
     }
 
     /**
@@ -447,6 +449,41 @@
             console.error('AJAX Error:', error);
             // Even on error, refresh to show current database state
             window.location.reload();
+        });
+    }
+
+    /**
+     * Set up view notes button functionality
+     */
+    function setupViewNotesButtons() {
+        const viewNotesButtons = document.querySelectorAll('.dmtp-view-notes-btn');
+        
+        viewNotesButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                const memberIndex = this.getAttribute('data-member-index');
+                const notesRow = document.getElementById('dmtp-notes-row-' + memberIndex);
+                
+                if (notesRow) {
+                    if (notesRow.style.display === 'none' || notesRow.style.display === '') {
+                        // Show notes row
+                        notesRow.style.display = 'table-row';
+                        this.innerHTML = '👁️ Hide Notes';
+                        this.classList.add('active');
+                        
+                        // Add slide-down animation
+                        notesRow.style.opacity = '0';
+                        setTimeout(function() {
+                            notesRow.style.transition = 'opacity 0.3s ease';
+                            notesRow.style.opacity = '1';
+                        }, 10);
+                    } else {
+                        // Hide notes row
+                        notesRow.style.display = 'none';
+                        this.innerHTML = '📝 View Notes';
+                        this.classList.remove('active');
+                    }
+                }
+            });
         });
     }
 
