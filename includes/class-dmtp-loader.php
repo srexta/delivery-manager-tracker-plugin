@@ -125,8 +125,8 @@ if (!class_exists('DMTP_Loader')) {
             // Register content modification hook
             $this->add_filter('the_content', $hooks, 'modify_content_display');
             
-            // Register shortcodes if any
-            // $this->add_shortcode('dmtp_sprint_list', $public, 'dmtp_sprint_list_shortcode');
+            // Register shortcodes
+            $this->add_shortcode('dmtp_sprint_roadmap', $public, 'dmtp_sprint_roadmap_shortcode');
         }
 
         /**

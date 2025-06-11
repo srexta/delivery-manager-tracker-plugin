@@ -1,1 +1,1153 @@
 /* Placeholder CSS */ 
+
+/* =============================================================================
+   DMTP Sprint Roadmap Styles
+   ============================================================================= */
+
+/* Base Styles */
+.dmtp-sprint-roadmap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.4;
+    font-size: 14px;
+}
+
+/* Error and No Data Messages */
+.dmtp-error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 10px 0;
+    font-size: 13px;
+}
+
+.dmtp-no-data {
+    background-color: #d1ecf1;
+    border: 1px solid #bee5eb;
+    color: #0c5460;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 10px 0;
+    text-align: center;
+    font-size: 13px;
+}
+
+/* Team Filter */
+.dmtp-team-filter {
+    margin-bottom: 15px;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.dmtp-team-filter label {
+    font-weight: 600;
+    margin-right: 8px;
+    color: #495057;
+    font-size: 13px;
+}
+
+.dmtp-team-select {
+    padding: 6px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 13px;
+    min-width: 180px;
+}
+
+.dmtp-team-select:focus {
+    outline: none;
+    border-color: #007cba;
+    box-shadow: 0 0 0 2px rgba(0, 124, 186, 0.25);
+}
+
+/* =============================================================================
+   ROADMAP VIEW
+   ============================================================================= */
+
+.dmtp-roadmap-view {
+    position: relative;
+}
+
+.dmtp-roadmap-timeline {
+    position: relative;
+    padding-left: 20px;
+}
+
+.dmtp-roadmap-timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #007cba, #005a87);
+    border-radius: 1px;
+}
+
+.dmtp-roadmap-item {
+    position: relative;
+    margin-bottom: 20px;
+    padding-left: 30px;
+}
+
+.dmtp-roadmap-marker {
+    position: absolute;
+    left: -18px;
+    top: 6px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #007cba;
+    background: white;
+    z-index: 2;
+}
+
+.dmtp-roadmap-content {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dmtp-roadmap-content:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.dmtp-roadmap-header {
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+}
+
+.dmtp-sprint-title {
+    margin: 0 0 6px 0;
+    color: #2c3e50;
+    font-size: 1.2em;
+    font-weight: 600;
+}
+
+.dmtp-sprint-dates {
+    color: #6c757d;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.dmtp-start-date, .dmtp-end-date {
+    background: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid #e9ecef;
+    font-size: 11px;
+}
+
+.dmtp-teams {
+    margin-bottom: 10px;
+    color: #495057;
+    font-size: 13px;
+}
+
+.dmtp-teams strong {
+    color: #2c3e50;
+}
+
+.dmtp-important-dates {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.dmtp-demo-date, .dmtp-retro-date {
+    background: #e3f2fd;
+    color: #1565c0;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    border: 1px solid #bbdefb;
+}
+
+.dmtp-retro-date {
+    background: #f3e5f5;
+    color: #7b1fa2;
+    border-color: #e1bee7;
+}
+
+/* Sprint Status Colors */
+.dmtp-sprint-upcoming .dmtp-roadmap-marker {
+    border-color: #ffc107;
+    background: #fff3cd;
+}
+
+.dmtp-sprint-upcoming .dmtp-roadmap-content {
+    border-left: 4px solid #ffc107;
+}
+
+.dmtp-sprint-active .dmtp-roadmap-marker {
+    border-color: #28a745;
+    background: #d4edda;
+}
+
+.dmtp-sprint-active .dmtp-roadmap-content {
+    border-left: 4px solid #28a745;
+}
+
+.dmtp-sprint-completed .dmtp-roadmap-marker {
+    border-color: #6c757d;
+    background: #f8f9fa;
+}
+
+.dmtp-sprint-completed .dmtp-roadmap-content {
+    border-left: 4px solid #6c757d;
+}
+
+/* =============================================================================
+   TIMELINE VIEW
+   ============================================================================= */
+
+.dmtp-timeline-view {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dmtp-timeline-item {
+    display: flex;
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+    transition: transform 0.2s ease;
+}
+
+.dmtp-timeline-item:hover {
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.dmtp-timeline-date {
+    flex-shrink: 0;
+    width: 60px;
+    text-align: center;
+    margin-right: 16px;
+    padding: 10px 6px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.dmtp-month {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.dmtp-day {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1;
+}
+
+.dmtp-timeline-content {
+    flex: 1;
+}
+
+.dmtp-timeline-content h4 {
+    margin: 0 0 4px 0;
+    color: #2c3e50;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+.dmtp-timeline-duration {
+    color: #6c757d;
+    margin: 0 0 8px 0;
+    font-size: 12px;
+}
+
+.dmtp-quick-metrics {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.dmtp-velocity, .dmtp-team-count {
+    background: #e3f2fd;
+    color: #1565c0;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    border: 1px solid #bbdefb;
+}
+
+.dmtp-team-count {
+    background: #f3e5f5;
+    color: #7b1fa2;
+    border-color: #e1bee7;
+}
+
+/* =============================================================================
+   CARDS VIEW
+   ============================================================================= */
+
+.dmtp-cards-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.dmtp-sprint-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dmtp-sprint-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.dmtp-card-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.dmtp-card-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.1em;
+    font-weight: 600;
+    flex: 1;
+    margin-right: 8px;
+}
+
+.dmtp-card-status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+}
+
+.dmtp-sprint-upcoming .dmtp-card-status {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.dmtp-sprint-active .dmtp-card-status {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.dmtp-sprint-completed .dmtp-card-status {
+    background: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #e9ecef;
+}
+
+.dmtp-card-body {
+    padding: 14px 16px;
+}
+
+.dmtp-card-dates, .dmtp-card-teams {
+    margin-bottom: 10px;
+    color: #495057;
+    font-size: 12px;
+}
+
+.dmtp-card-dates span, .dmtp-card-teams span {
+    background: #f8f9fa;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    display: inline-block;
+    font-size: 11px;
+}
+
+.dmtp-progress-bar {
+    position: relative;
+    background: #e9ecef;
+    border-radius: 8px;
+    height: 16px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.dmtp-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #28a745, #20c997);
+    border-radius: 8px;
+    transition: width 0.3s ease;
+}
+
+.dmtp-progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    font-weight: 600;
+    color: #2c3e50;
+    z-index: 2;
+}
+
+.dmtp-card-footer {
+    padding: 10px 16px 14px;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+
+.dmtp-demo {
+    background: #e3f2fd;
+    color: #1565c0;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 500;
+    border: 1px solid #bbdefb;
+    display: inline-block;
+}
+
+/* =============================================================================
+   METRICS
+   ============================================================================= */
+
+.dmtp-sprint-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.dmtp-metric {
+    background: #f8f9fa;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    text-align: center;
+}
+
+.dmtp-metric-label {
+    display: block;
+    font-size: 10px;
+    color: #6c757d;
+    font-weight: 500;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.dmtp-metric-value {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================= */
+
+@media (max-width: 768px) {
+    .dmtp-sprint-roadmap {
+        padding: 8px;
+    }
+    
+    .dmtp-roadmap-timeline {
+        padding-left: 16px;
+    }
+    
+    .dmtp-roadmap-item {
+        padding-left: 24px;
+        margin-bottom: 16px;
+    }
+    
+    .dmtp-roadmap-content {
+        padding: 12px;
+    }
+    
+    .dmtp-sprint-title {
+        font-size: 1.1em;
+    }
+    
+    .dmtp-important-dates {
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .dmtp-cards-view {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .dmtp-timeline-item {
+        flex-direction: column;
+        text-align: center;
+        padding: 10px;
+    }
+    
+    .dmtp-timeline-date {
+        width: auto;
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+    
+    .dmtp-sprint-metrics {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+    
+    .dmtp-team-filter {
+        padding: 10px 12px;
+        margin-bottom: 10px;
+    }
+    
+    .dmtp-team-filter label {
+        display: block;
+        margin-bottom: 6px;
+    }
+    
+    .dmtp-team-select {
+        width: 100%;
+    }
+    
+    .dmtp-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 10px 12px 8px;
+    }
+    
+    .dmtp-card-header h3 {
+        margin-right: 0;
+        font-size: 1em;
+    }
+    
+    .dmtp-card-body {
+        padding: 10px 12px;
+    }
+    
+    .dmtp-card-footer {
+        padding: 8px 12px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dmtp-sprint-metrics {
+        grid-template-columns: 1fr;
+    }
+    
+    .dmtp-metric {
+        padding: 8px 12px;
+    }
+    
+    .dmtp-quick-metrics {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+/* =============================================================================
+   ANIMATIONS & INTERACTIONS
+   ============================================================================= */
+
+/* Animation classes for JavaScript */
+.dmtp-hidden {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    display: none !important;
+}
+
+.dmtp-visible {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: auto;
+    display: block !important;
+}
+
+/* Ensure proper display for different view types */
+.dmtp-cards-view .dmtp-visible {
+    display: block !important;
+}
+
+.dmtp-timeline-view .dmtp-visible {
+    display: flex !important;
+}
+
+.dmtp-roadmap-view .dmtp-visible {
+    display: block !important;
+}
+
+.dmtp-animate-in {
+    animation: dmtpFadeInUp 0.6s ease forwards;
+}
+
+@keyframes dmtpFadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* No results message */
+.dmtp-no-results {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+    font-style: italic;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+/* Layout refresh animation */
+.dmtp-layout-refresh {
+    transition: all 0.1s ease;
+}
+
+/* Focus styles for accessibility */
+.dmtp-team-select:focus,
+.dmtp-roadmap-content:focus,
+.dmtp-sprint-card:focus {
+    outline: 2px solid #007cba;
+    outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+    .dmtp-team-filter {
+        display: none;
+    }
+    
+    .dmtp-sprint-roadmap {
+        box-shadow: none;
+    }
+    
+    .dmtp-roadmap-content,
+    .dmtp-sprint-card,
+    .dmtp-timeline-item {
+        box-shadow: none;
+        border: 1px solid #000;
+        break-inside: avoid;
+    }
+}
+
+/* Member Contributions Toggle and Table Styles */
+.dmtp-members-toggle,
+.dmtp-hotfixes-toggle {
+    margin: 8px 0;
+}
+
+.dmtp-toggle-members,
+.dmtp-toggle-hotfixes {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 12px;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.dmtp-toggle-members:hover,
+.dmtp-toggle-hotfixes:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.dmtp-toggle-members:active,
+.dmtp-toggle-members.active,
+.dmtp-toggle-hotfixes:active,
+.dmtp-toggle-hotfixes.active {
+    background: #007cba;
+    color: white;
+    border-color: #006ba1;
+}
+
+/* Timeline specific toggles */
+.dmtp-timeline-members .dmtp-toggle-members,
+.dmtp-timeline-hotfixes .dmtp-toggle-hotfixes {
+    padding: 4px 8px;
+    font-size: 11px;
+}
+
+/* Card specific toggles */
+.dmtp-card-members .dmtp-toggle-members,
+.dmtp-card-hotfixes .dmtp-toggle-hotfixes {
+    font-size: 11px;
+    margin: 6px 0;
+}
+
+/* Hotfixes Toggle specific styling */
+.dmtp-toggle-hotfixes {
+    background: #fff3cd;
+    border-color: #ffb84d;
+    color: #856404;
+}
+
+.dmtp-toggle-hotfixes:hover {
+    background: #ffeaa7;
+    border-color: #fd9644;
+}
+
+.dmtp-toggle-hotfixes:active,
+.dmtp-toggle-hotfixes.active {
+    background: #fd9644;
+    color: white;
+    border-color: #e17055;
+}
+
+/* Member Table Wrapper */
+.dmtp-member-table-wrapper,
+.dmtp-hotfixes-table-wrapper {
+    margin: 10px 0;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+/* Hotfixes Table specific styling */
+.dmtp-hotfixes-table-wrapper {
+    border-color: #ffb84d;
+    background: #fff8e1;
+}
+
+/* Add scrolling indicator for horizontal scroll */
+.dmtp-member-table-wrapper.dmtp-scrollable::after,
+.dmtp-hotfixes-table-wrapper.dmtp-scrollable::after {
+    content: "→ Scroll to see more";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 123, 255, 0.9);
+    color: white;
+    padding: 2px 6px;
+    font-size: 9px;
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0.8;
+}
+
+/* Hotfixes scroll indicator */
+.dmtp-hotfixes-table-wrapper.dmtp-scrollable::after {
+    background: rgba(253, 150, 68, 0.9);
+}
+
+/* Hide scroll indicator on mobile where it's expected */
+@media (max-width: 480px) {
+    .dmtp-member-table-wrapper.dmtp-scrollable::after,
+    .dmtp-hotfixes-table-wrapper.dmtp-scrollable::after {
+        display: none;
+    }
+    
+    .dmtp-member-table th,
+    .dmtp-member-table td,
+    .dmtp-hotfixes-table th,
+    .dmtp-hotfixes-table td {
+        padding: 4px 6px;
+        font-size: 10px;
+        max-width: 80px;
+    }
+    
+    .dmtp-toggle-members,
+    .dmtp-toggle-hotfixes {
+        font-size: 10px;
+        padding: 4px 6px;
+    }
+}
+
+/* Table hover effects */
+.dmtp-member-table tbody tr:hover,
+.dmtp-hotfixes-table tbody tr:hover {
+    background: rgba(0, 123, 255, 0.05);
+}
+
+.dmtp-hotfixes-table tbody tr:hover {
+    background: rgba(253, 150, 68, 0.05);
+}
+
+/* Animation for table slides */
+.dmtp-members-table,
+.dmtp-hotfixes-table {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.dmtp-members-table[style*="block"],
+.dmtp-hotfixes-table[style*="block"] {
+    max-height: 500px;
+    overflow: auto;
+}
+
+/* Member Table */
+.dmtp-member-table,
+.dmtp-hotfixes-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    font-size: 11px;
+    background: white;
+}
+
+.dmtp-member-table thead,
+.dmtp-hotfixes-table thead {
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.dmtp-member-table th,
+.dmtp-member-table td,
+.dmtp-hotfixes-table th,
+.dmtp-hotfixes-table td {
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 1px solid #f1f3f4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+
+/* Hotfixes Table specific styling */
+.dmtp-hotfixes-table thead {
+    background: #fff3cd;
+    border-bottom-color: #ffb84d;
+}
+
+.dmtp-hotfixes-table th {
+    font-weight: 600;
+    color: #856404;
+}
+
+.dmtp-hotfixes-table td {
+    color: #6c757d;
+}
+
+/* Member name column - allow longer text */
+.dmtp-member-name {
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.dmtp-member-role {
+    max-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 10px;
+    color: #6c757d;
+}
+
+/* Numeric columns */
+.dmtp-estimated-hours,
+.dmtp-committed-sp,
+.dmtp-delivered-sp,
+.dmtp-hotfixes,
+.dmtp-absent-days {
+    text-align: center;
+    font-weight: 500;
+    min-width: 35px;
+}
+
+/* Velocity column with color coding */
+.dmtp-velocity {
+    text-align: center;
+    font-weight: 600;
+    min-width: 50px;
+}
+
+.dmtp-velocity-excellent {
+    color: #28a745;
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.dmtp-velocity-good {
+    color: #007bff;
+    background: rgba(0, 123, 255, 0.1);
+}
+
+.dmtp-velocity-average {
+    color: #ffc107;
+    background: rgba(255, 193, 7, 0.1);
+}
+
+.dmtp-velocity-poor {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+}
+
+/* Rating column with color coding */
+.dmtp-rating {
+    text-align: center;
+    font-weight: 600;
+    min-width: 45px;
+}
+
+.dmtp-rating-excellent {
+    color: #28a745;
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.dmtp-rating-good {
+    color: #007bff;
+    background: rgba(0, 123, 255, 0.1);
+}
+
+.dmtp-rating-average {
+    color: #ffc107;
+    background: rgba(255, 193, 7, 0.1);
+}
+
+.dmtp-rating-poor {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+}
+
+/* Member notes row */
+.dmtp-member-notes-row {
+    background: #f8f9fa !important;
+}
+
+.dmtp-member-notes {
+    font-size: 10px !important;
+    color: #6c757d !important;
+    font-style: italic;
+    padding: 4px 6px !important;
+    border-top: 1px solid #e9ecef !important;
+}
+
+.dmtp-member-notes strong {
+    color: #495057;
+    font-style: normal;
+}
+
+/* No members message */
+.dmtp-no-members {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    margin: 10px 0;
+    font-size: 12px;
+}
+
+/* Animation for table show/hide */
+.dmtp-members-table {
+    animation-duration: 0.3s;
+    animation-fill-mode: both;
+}
+
+.dmtp-members-table.dmtp-slide-down {
+    animation-name: dmtpSlideDown;
+}
+
+.dmtp-members-table.dmtp-slide-up {
+    animation-name: dmtpSlideUp;
+}
+
+@keyframes dmtpSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes dmtpSlideUp {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* Responsive adjustments for member table */
+@media (max-width: 768px) {
+    .dmtp-member-table-wrapper {
+        overflow-x: auto;
+        margin: 8px -5px;
+    }
+    
+    .dmtp-member-table {
+        min-width: 600px;
+        font-size: 10px;
+    }
+    
+    .dmtp-member-table th,
+    .dmtp-member-table td {
+        padding: 4px 3px;
+    }
+    
+    .dmtp-member-name {
+        max-width: 70px;
+    }
+    
+    .dmtp-member-role {
+        max-width: 50px;
+    }
+    
+    .dmtp-toggle-members {
+        font-size: 10px;
+        padding: 4px 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dmtp-member-table {
+        font-size: 9px;
+        min-width: 550px;
+    }
+    
+    .dmtp-member-table th,
+    .dmtp-member-table td {
+        padding: 3px 2px;
+    }
+    
+    .dmtp-member-name {
+        max-width: 60px;
+    }
+    
+    .dmtp-member-role {
+        max-width: 40px;
+    }
+    
+    .dmtp-estimated-hours,
+    .dmtp-committed-sp,
+    .dmtp-delivered-sp,
+    .dmtp-hotfixes,
+    .dmtp-absent-days {
+        min-width: 30px;
+    }
+    
+    .dmtp-velocity {
+        min-width: 40px;
+    }
+    
+    .dmtp-rating {
+        min-width: 35px;
+    }
+}
+
+/* Tooltip Styles */
+.dmtp-tooltip {
+    position: absolute;
+    background: #333;
+    color: white;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.dmtp-tooltip-visible {
+    opacity: 1;
+}
+
+.dmtp-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -4px;
+    border: 4px solid transparent;
+    border-top-color: #333;
+}
+
+/* Animation Classes */
+.dmtp-animated {
+    animation: dmtpFadeInUp 0.5s ease forwards;
+}
+
+@keyframes dmtpFadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Visibility Classes for Team Filtering */
+.dmtp-hidden {
+    display: none !important;
+}
+
+.dmtp-visible {
+    display: block !important;
+}
+
+/* No Results Message */
+.dmtp-no-results {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    margin: 20px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+}
+
+.dmtp-no-results p {
+    margin: 0;
+    font-size: 14px;
+} 

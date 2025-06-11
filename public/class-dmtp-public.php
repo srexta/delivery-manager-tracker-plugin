@@ -16,18 +16,15 @@ if (!class_exists('DMTP_Public')) {
          * Enqueue scripts and styles for the public-facing side.
          */
         public function enqueue_scripts() {
-            // If needed, enqueue styles here
-            /*
+            // Enqueue styles for the roadmap
             wp_enqueue_style(
                 'dmtp-public-styles',
                 DMTP_PLUGIN_URL . 'assets/css/public-styles.css',
                 array(),
                 DMTP_VERSION
             );
-            */
             
-            // If needed, enqueue scripts here
-            /*
+            // Enqueue scripts for interactive features
             wp_enqueue_script(
                 'dmtp-public-scripts',
                 DMTP_PLUGIN_URL . 'assets/js/public-scripts.js',
@@ -35,20 +32,762 @@ if (!class_exists('DMTP_Public')) {
                 DMTP_VERSION,
                 true
             );
-            */
         }
         
-        // Add any other public-facing methods here, like shortcodes
-        // Example shortcode:
-        /*
-        public function dmtp_sprint_list_shortcode($atts) {
+        /**
+         * Sprint roadmap shortcode handler.
+         * Usage: [dmtp_sprint_roadmap team="Marketing" view="roadmap" count="5" status="all"]
+         *
+         * @param array $atts Shortcode attributes.
+         * @return string Rendered HTML output.
+         */
+        public function dmtp_sprint_roadmap_shortcode($atts) {
+            // Parse shortcode attributes
             $atts = shortcode_atts(array(
-                'count' => 5,
-            ), $atts);
+                'team' => '',
+                'view' => 'roadmap',
+                'count' => 10,
+                'status' => 'all',
+                'show_team_filter' => 'true'
+            ), $atts, 'dmtp_sprint_roadmap');
+
+            // Check user permissions
+            if (!$this->user_can_view_sprints()) {
+                return '<div class="dmtp-error">You do not have permission to view sprint data.</div>';
+            }
+
+            // Get sprint data
+            $sprints = $this->get_sprint_data($atts);
             
-            // Logic to get and display sprints
-            return 'Sprint list goes here';
+            if (empty($sprints)) {
+                return '<div class="dmtp-no-data">No sprint data available.</div>';
+            }
+
+            // Generate output based on view type
+            $output = '<div class="dmtp-sprint-roadmap" data-view="' . esc_attr($atts['view']) . '">';
+            
+            // Add team filter if enabled
+            if ($atts['show_team_filter'] === 'true') {
+                $output .= $this->render_team_filter($atts['team']);
+            }
+            
+            // Render view
+            switch ($atts['view']) {
+                case 'timeline':
+                    $output .= $this->render_timeline_view($sprints);
+                    break;
+                case 'cards':
+                    $output .= $this->render_cards_view($sprints);
+                    break;
+                case 'roadmap':
+                default:
+                    $output .= $this->render_roadmap_view($sprints);
+                    break;
+            }
+            
+            $output .= '</div>';
+            
+            return $output;
         }
-        */
+
+        /**
+         * Check if current user can view sprints.
+         *
+         * @return bool True if user can view sprints.
+         */
+        private function user_can_view_sprints() {
+            if (!is_user_logged_in()) {
+                return false;
+            }
+            
+            $user = wp_get_current_user();
+            $allowed_roles = array('administrator', 'dmtp_manager', 'dmtp_developer', 'dmtp_observer');
+            
+            return array_intersect($allowed_roles, $user->roles) ? true : false;
+        }
+
+        /**
+         * Get sprint data based on shortcode attributes.
+         *
+         * @param array $atts Shortcode attributes.
+         * @return array Array of sprint data.
+         */
+        private function get_sprint_data($atts) {
+            $args = array(
+                'post_type' => 'dmtp_sprint',
+                'post_status' => 'publish',
+                'posts_per_page' => intval($atts['count']),
+                'orderby' => 'meta_value',
+                'meta_key' => 'start_date',
+                'order' => 'DESC'
+            );
+
+            // Filter by status if specified
+            if ($atts['status'] !== 'all') {
+                $today = date('Y-m-d');
+                if ($atts['status'] === 'active') {
+                    $args['meta_query'] = array(
+                        array(
+                            'key' => 'start_date',
+                            'value' => $today,
+                            'compare' => '<='
+                        ),
+                        array(
+                            'key' => 'end_date',
+                            'value' => $today,
+                            'compare' => '>='
+                        )
+                    );
+                } elseif ($atts['status'] === 'completed') {
+                    $args['meta_query'] = array(
+                        array(
+                            'key' => 'end_date',
+                            'value' => $today,
+                            'compare' => '<'
+                        )
+                    );
+                }
+            }
+
+            $query = new WP_Query($args);
+            $sprints = array();
+
+            if ($query->have_posts()) {
+                while ($query->have_posts()) {
+                    $query->the_post();
+                    $post_id = get_the_ID();
+                    
+                    $sprint_data = array(
+                        'id' => $post_id,
+                        'title' => get_the_title(),
+                        'content' => get_the_content(),
+                        'start_date' => get_field('start_date', $post_id),
+                        'end_date' => get_field('end_date', $post_id),
+                        'demonstration_date' => get_field('demonstration_date', $post_id),
+                        'retrospective_day' => get_field('retrospective_day', $post_id),
+                        'selected_teams' => get_field('selected_teams', $post_id),
+                        'member_performance' => get_field('dmtp_member_performance', $post_id),
+                        'planning_note' => get_field('planning_note', $post_id),
+                        'retrospective_note' => get_field('retrospective_note', $post_id),
+                        'sprint_team_hotfixes' => get_field('sprint_team_hotfixes', $post_id)
+                    );
+                    
+                    // Filter by team if specified
+                    if (!empty($atts['team']) && !empty($sprint_data['selected_teams'])) {
+                        if (in_array($atts['team'], $sprint_data['selected_teams'])) {
+                            $sprints[] = $sprint_data;
+                        }
+                    } else {
+                        $sprints[] = $sprint_data;
+                    }
+                }
+            }
+            
+            wp_reset_postdata();
+            return $sprints;
+        }
+
+        /**
+         * Render team filter dropdown.
+         *
+         * @param string $selected_team Currently selected team.
+         * @return string HTML for team filter.
+         */
+        private function render_team_filter($selected_team) {
+            $teams = $this->get_available_teams();
+            
+            if (empty($teams)) {
+                return '';
+            }
+            
+            $output = '<div class="dmtp-team-filter">';
+            $output .= '<label for="dmtp-team-select">Filter by Team:</label>';
+            $output .= '<select id="dmtp-team-select" class="dmtp-team-select">';
+            $output .= '<option value="">All Teams</option>';
+            
+            foreach ($teams as $team) {
+                $selected = ($selected_team === $team) ? 'selected' : '';
+                $output .= '<option value="' . esc_attr($team) . '" ' . $selected . '>' . esc_html($team) . '</option>';
+            }
+            
+            $output .= '</select>';
+            $output .= '</div>';
+            
+            return $output;
+        }
+
+        /**
+         * Get available teams from settings.
+         *
+         * @return array Array of team names.
+         */
+        private function get_available_teams() {
+            $teams_data = get_field('dmtp_teams', 'option');
+            $teams = array();
+            
+            if (!empty($teams_data)) {
+                foreach ($teams_data as $team) {
+                    if (!empty($team['team_name'])) {
+                        $teams[] = $team['team_name'];
+                    }
+                }
+            }
+            
+            return $teams;
+        }
+
+        /**
+         * Render roadmap view.
+         *
+         * @param array $sprints Sprint data.
+         * @return string HTML for roadmap view.
+         */
+        private function render_roadmap_view($sprints) {
+            $output = '<div class="dmtp-roadmap-view">';
+            $output .= '<div class="dmtp-roadmap-timeline">';
+            
+            foreach ($sprints as $sprint) {
+                $status_class = $this->get_sprint_status_class($sprint);
+                $teams_data = !empty($sprint['selected_teams']) ? implode(',', $sprint['selected_teams']) : '';
+                
+                $output .= '<div class="dmtp-roadmap-item ' . $status_class . '" data-teams="' . esc_attr($teams_data) . '">';
+                $output .= '<div class="dmtp-roadmap-marker"></div>';
+                $output .= '<div class="dmtp-roadmap-content">';
+                
+                // Sprint header
+                $output .= '<div class="dmtp-roadmap-header">';
+                $output .= '<h3 class="dmtp-sprint-title">' . esc_html($sprint['title']) . '</h3>';
+                $output .= '<div class="dmtp-sprint-dates">';
+                $output .= '<span class="dmtp-start-date">' . $this->format_date($sprint['start_date']) . '</span>';
+                $output .= ' → ';
+                $output .= '<span class="dmtp-end-date">' . $this->format_date($sprint['end_date']) . '</span>';
+                $output .= '</div>';
+                $output .= '</div>';
+                
+                // Sprint details
+                $output .= '<div class="dmtp-roadmap-details">';
+                
+                // Teams involved
+                if (!empty($sprint['selected_teams'])) {
+                    $output .= '<div class="dmtp-teams">';
+                    $output .= '<strong>Teams:</strong> ' . implode(', ', $sprint['selected_teams']);
+                    $output .= '</div>';
+                }
+                
+                // Key metrics
+                $output .= $this->render_sprint_metrics($sprint);
+                
+                // Member contributions toggle button
+                if (!empty($sprint['member_performance'])) {
+                    $output .= '<div class="dmtp-members-toggle">';
+                    $output .= '<button class="dmtp-toggle-members" data-sprint-id="' . esc_attr($sprint['id']) . '">';
+                    $output .= '👥 View Team Contributions (' . count($sprint['member_performance']) . ' members)';
+                    $output .= '</button>';
+                    $output .= '</div>';
+                    
+                    // Member contributions table (hidden by default)
+                    $output .= '<div class="dmtp-members-table" id="dmtp-members-' . esc_attr($sprint['id']) . '" style="display: none;">';
+                    $output .= $this->render_member_contributions_table($sprint['member_performance']);
+                    $output .= '</div>';
+                }
+                
+                // Hotfixes toggle button
+                if (!empty($sprint['sprint_team_hotfixes'])) {
+                    $hotfix_count = $this->count_total_hotfixes($sprint['sprint_team_hotfixes']);
+                    if ($hotfix_count > 0) {
+                        $output .= '<div class="dmtp-hotfixes-toggle">';
+                        $output .= '<button class="dmtp-toggle-hotfixes" data-sprint-id="' . esc_attr($sprint['id']) . '">';
+                        $output .= '🐛 View Sprint Hotfixes (' . $hotfix_count . ' hotfixes)';
+                        $output .= '</button>';
+                        $output .= '</div>';
+                        
+                        // Hotfixes table (hidden by default)
+                        $output .= '<div class="dmtp-hotfixes-table" id="dmtp-hotfixes-' . esc_attr($sprint['id']) . '" style="display: none;">';
+                        $output .= $this->render_hotfixes_table($sprint['sprint_team_hotfixes']);
+                        $output .= '</div>';
+                    }
+                }
+                
+                // Important dates
+                $output .= '<div class="dmtp-important-dates">';
+                if (!empty($sprint['demonstration_date'])) {
+                    $output .= '<span class="dmtp-demo-date">🎯 Demo: ' . $this->format_date($sprint['demonstration_date']) . '</span>';
+                }
+                if (!empty($sprint['retrospective_day'])) {
+                    $output .= '<span class="dmtp-retro-date">🔄 Retro: ' . $this->format_date($sprint['retrospective_day']) . '</span>';
+                }
+                $output .= '</div>';
+                
+                $output .= '</div>';
+                $output .= '</div>';
+                $output .= '</div>';
+            }
+            
+            $output .= '</div>';
+            $output .= '</div>';
+            
+            return $output;
+        }
+
+        /**
+         * Render timeline view.
+         *
+         * @param array $sprints Sprint data.
+         * @return string HTML for timeline view.
+         */
+        private function render_timeline_view($sprints) {
+            $output = '<div class="dmtp-timeline-view">';
+            
+            foreach ($sprints as $sprint) {
+                $status_class = $this->get_sprint_status_class($sprint);
+                $teams_data = !empty($sprint['selected_teams']) ? implode(',', $sprint['selected_teams']) : '';
+                
+                $output .= '<div class="dmtp-timeline-item ' . $status_class . '" data-teams="' . esc_attr($teams_data) . '">';
+                $output .= '<div class="dmtp-timeline-date">';
+                $output .= '<span class="dmtp-month">' . date('M', strtotime($sprint['start_date'])) . '</span>';
+                $output .= '<span class="dmtp-day">' . date('d', strtotime($sprint['start_date'])) . '</span>';
+                $output .= '</div>';
+                
+                $output .= '<div class="dmtp-timeline-content">';
+                $output .= '<h4>' . esc_html($sprint['title']) . '</h4>';
+                $output .= '<p class="dmtp-timeline-duration">';
+                $output .= $this->format_date($sprint['start_date']) . ' - ' . $this->format_date($sprint['end_date']);
+                $output .= '</p>';
+                
+                // Quick metrics
+                $output .= $this->render_quick_metrics($sprint);
+                
+                // Member contributions toggle button
+                if (!empty($sprint['member_performance'])) {
+                    $output .= '<div class="dmtp-members-toggle dmtp-timeline-members">';
+                    $output .= '<button class="dmtp-toggle-members" data-sprint-id="' . esc_attr($sprint['id']) . '">';
+                    $output .= '👥 Team (' . count($sprint['member_performance']) . ')';
+                    $output .= '</button>';
+                    $output .= '</div>';
+                    
+                    // Member contributions table (hidden by default)
+                    $output .= '<div class="dmtp-members-table" id="dmtp-members-' . esc_attr($sprint['id']) . '" style="display: none;">';
+                    $output .= $this->render_member_contributions_table($sprint['member_performance']);
+                    $output .= '</div>';
+                }
+                
+                // Hotfixes toggle button
+                if (!empty($sprint['sprint_team_hotfixes'])) {
+                    $hotfix_count = $this->count_total_hotfixes($sprint['sprint_team_hotfixes']);
+                    if ($hotfix_count > 0) {
+                        $output .= '<div class="dmtp-hotfixes-toggle dmtp-timeline-hotfixes">';
+                        $output .= '<button class="dmtp-toggle-hotfixes" data-sprint-id="' . esc_attr($sprint['id']) . '">';
+                        $output .= '🐛 Fixes (' . $hotfix_count . ')';
+                        $output .= '</button>';
+                        $output .= '</div>';
+                        
+                        // Hotfixes table (hidden by default)
+                        $output .= '<div class="dmtp-hotfixes-table" id="dmtp-hotfixes-' . esc_attr($sprint['id']) . '" style="display: none;">';
+                        $output .= $this->render_hotfixes_table($sprint['sprint_team_hotfixes']);
+                        $output .= '</div>';
+                    }
+                }
+                
+                $output .= '</div>';
+                $output .= '</div>';
+            }
+            
+            $output .= '</div>';
+            
+            return $output;
+        }
+
+        /**
+         * Render cards view.
+         *
+         * @param array $sprints Sprint data.
+         * @return string HTML for cards view.
+         */
+        private function render_cards_view($sprints) {
+            $output = '<div class="dmtp-cards-view">';
+            
+            foreach ($sprints as $sprint) {
+                $status_class = $this->get_sprint_status_class($sprint);
+                $card_teams_data = !empty($sprint['selected_teams']) ? implode(',', $sprint['selected_teams']) : '';
+                
+                $output .= '<div class="dmtp-sprint-card ' . $status_class . '" data-teams="' . esc_attr($card_teams_data) . '">';
+                
+                // Card header
+                $output .= '<div class="dmtp-card-header">';
+                $output .= '<h3>' . esc_html($sprint['title']) . '</h3>';
+                $output .= '<div class="dmtp-card-status">' . ucfirst(str_replace('dmtp-sprint-', '', $status_class)) . '</div>';
+                $output .= '</div>';
+                
+                // Card body
+                $output .= '<div class="dmtp-card-body">';
+                $output .= '<div class="dmtp-card-dates">';
+                $output .= '<span>📅 ' . $this->format_date($sprint['start_date']) . ' - ' . $this->format_date($sprint['end_date']) . '</span>';
+                $output .= '</div>';
+                
+                // Teams
+                if (!empty($sprint['selected_teams'])) {
+                    $output .= '<div class="dmtp-card-teams">';
+                    $output .= '<span>👥 ' . implode(', ', $sprint['selected_teams']) . '</span>';
+                    $output .= '</div>';
+                }
+                
+                // Metrics
+                $output .= $this->render_card_metrics($sprint);
+                
+                // Member contributions toggle button
+                if (!empty($sprint['member_performance'])) {
+                    $output .= '<div class="dmtp-members-toggle dmtp-card-members">';
+                    $output .= '<button class="dmtp-toggle-members" data-sprint-id="' . esc_attr($sprint['id']) . '">';
+                    $output .= '👥 View Team Contributions (' . count($sprint['member_performance']) . ')';
+                    $output .= '</button>';
+                    $output .= '</div>';
+                    
+                    // Member contributions table (hidden by default)
+                    $output .= '<div class="dmtp-members-table" id="dmtp-members-' . esc_attr($sprint['id']) . '" style="display: none;">';
+                    $output .= $this->render_member_contributions_table($sprint['member_performance']);
+                    $output .= '</div>';
+                }
+                
+                // Hotfixes toggle button
+                if (!empty($sprint['sprint_team_hotfixes'])) {
+                    $hotfix_count = $this->count_total_hotfixes($sprint['sprint_team_hotfixes']);
+                    if ($hotfix_count > 0) {
+                        $output .= '<div class="dmtp-hotfixes-toggle dmtp-card-hotfixes">';
+                        $output .= '<button class="dmtp-toggle-hotfixes" data-sprint-id="' . esc_attr($sprint['id']) . '">';
+                        $output .= '🐛 View Hotfixes (' . $hotfix_count . ')';
+                        $output .= '</button>';
+                        $output .= '</div>';
+                        
+                        // Hotfixes table (hidden by default)
+                        $output .= '<div class="dmtp-hotfixes-table" id="dmtp-hotfixes-' . esc_attr($sprint['id']) . '" style="display: none;">';
+                        $output .= $this->render_hotfixes_table($sprint['sprint_team_hotfixes']);
+                        $output .= '</div>';
+                    }
+                }
+                
+                $output .= '</div>';
+                
+                // Card footer
+                $output .= '<div class="dmtp-card-footer">';
+                if (!empty($sprint['demonstration_date'])) {
+                    $output .= '<span class="dmtp-demo">🎯 Demo: ' . $this->format_date($sprint['demonstration_date']) . '</span>';
+                }
+                $output .= '</div>';
+                
+                $output .= '</div>';
+            }
+            
+            $output .= '</div>';
+            
+            return $output;
+        }
+
+        /**
+         * Render sprint metrics.
+         *
+         * @param array $sprint Sprint data.
+         * @return string HTML for sprint metrics.
+         */
+        private function render_sprint_metrics($sprint) {
+            $output = '<div class="dmtp-sprint-metrics">';
+            
+            if (!empty($sprint['member_performance'])) {
+                $total_committed = 0;
+                $total_delivered = 0;
+                $team_count = count($sprint['member_performance']);
+                
+                foreach ($sprint['member_performance'] as $member) {
+                    $total_committed += intval($member['member_total_story_points']);
+                    $total_delivered += intval($member['member_delivered_story_points']);
+                }
+                
+                $velocity = $total_committed > 0 ? round(($total_delivered / $total_committed) * 100) : 0;
+                
+                $output .= '<div class="dmtp-metric">';
+                $output .= '<span class="dmtp-metric-label">Story Points:</span>';
+                $output .= '<span class="dmtp-metric-value">' . $total_delivered . '/' . $total_committed . '</span>';
+                $output .= '</div>';
+                
+                $output .= '<div class="dmtp-metric">';
+                $output .= '<span class="dmtp-metric-label">Velocity:</span>';
+                $output .= '<span class="dmtp-metric-value">' . $velocity . '%</span>';
+                $output .= '</div>';
+                
+                $output .= '<div class="dmtp-metric">';
+                $output .= '<span class="dmtp-metric-label">Team Size:</span>';
+                $output .= '<span class="dmtp-metric-value">' . $team_count . '</span>';
+                $output .= '</div>';
+            }
+            
+            // Hotfixes count
+            if (!empty($sprint['sprint_team_hotfixes'])) {
+                $hotfix_count = 0;
+                foreach ($sprint['sprint_team_hotfixes'] as $team_hotfix) {
+                    if (!empty($team_hotfix['team_hotfix_list'])) {
+                        $hotfix_count += count($team_hotfix['team_hotfix_list']);
+                    }
+                }
+                
+                if ($hotfix_count > 0) {
+                    $output .= '<div class="dmtp-metric">';
+                    $output .= '<span class="dmtp-metric-label">Hotfixes:</span>';
+                    $output .= '<span class="dmtp-metric-value">' . $hotfix_count . '</span>';
+                    $output .= '</div>';
+                }
+            }
+            
+            $output .= '</div>';
+            
+            return $output;
+        }
+
+        /**
+         * Render quick metrics for timeline view.
+         *
+         * @param array $sprint Sprint data.
+         * @return string HTML for quick metrics.
+         */
+        private function render_quick_metrics($sprint) {
+            $output = '<div class="dmtp-quick-metrics">';
+            
+            if (!empty($sprint['member_performance'])) {
+                $total_committed = 0;
+                $total_delivered = 0;
+                
+                foreach ($sprint['member_performance'] as $member) {
+                    $total_committed += intval($member['member_total_story_points']);
+                    $total_delivered += intval($member['member_delivered_story_points']);
+                }
+                
+                $velocity = $total_committed > 0 ? round(($total_delivered / $total_committed) * 100) : 0;
+                $output .= '<span class="dmtp-velocity">⚡ ' . $velocity . '% velocity</span>';
+            }
+            
+            if (!empty($sprint['selected_teams'])) {
+                $output .= '<span class="dmtp-team-count">👥 ' . count($sprint['selected_teams']) . ' teams</span>';
+            }
+            
+            $output .= '</div>';
+            
+            return $output;
+        }
+
+        /**
+         * Render card metrics.
+         *
+         * @param array $sprint Sprint data.
+         * @return string HTML for card metrics.
+         */
+        private function render_card_metrics($sprint) {
+            $output = '<div class="dmtp-card-metrics">';
+            
+            if (!empty($sprint['member_performance'])) {
+                $total_committed = 0;
+                $total_delivered = 0;
+                
+                foreach ($sprint['member_performance'] as $member) {
+                    $total_committed += intval($member['member_total_story_points']);
+                    $total_delivered += intval($member['member_delivered_story_points']);
+                }
+                
+                $velocity = $total_committed > 0 ? round(($total_delivered / $total_committed) * 100) : 0;
+                
+                $output .= '<div class="dmtp-progress-bar">';
+                $output .= '<div class="dmtp-progress-fill" style="width: ' . $velocity . '%"></div>';
+                $output .= '<span class="dmtp-progress-text">' . $total_delivered . '/' . $total_committed . ' SP (' . $velocity . '%)</span>';
+                $output .= '</div>';
+            }
+            
+            $output .= '</div>';
+            
+            return $output;
+        }
+
+        /**
+         * Get sprint status class based on dates.
+         *
+         * @param array $sprint Sprint data.
+         * @return string CSS class for sprint status.
+         */
+        private function get_sprint_status_class($sprint) {
+            $today = date('Y-m-d');
+            $start_date = $sprint['start_date'];
+            $end_date = $sprint['end_date'];
+            
+            if ($today < $start_date) {
+                return 'dmtp-sprint-upcoming';
+            } elseif ($today >= $start_date && $today <= $end_date) {
+                return 'dmtp-sprint-active';
+            } else {
+                return 'dmtp-sprint-completed';
+            }
+        }
+
+        /**
+         * Format date for display.
+         *
+         * @param string $date Date string.
+         * @return string Formatted date.
+         */
+        private function format_date($date) {
+            if (empty($date)) {
+                return '';
+            }
+            
+            return date('M j, Y', strtotime($date));
+        }
+
+        /**
+         * Render member contributions table.
+         *
+         * @param array $members Member performance data.
+         * @return string HTML for member contributions table.
+         */
+        private function render_member_contributions_table($members) {
+            if (empty($members) || !is_array($members)) {
+                return '<p class="dmtp-no-members">No member data available.</p>';
+            }
+            
+            $output = '<div class="dmtp-member-table-wrapper">';
+            $output .= '<table class="dmtp-member-table">';
+            
+            // Table header
+            $output .= '<thead>';
+            $output .= '<tr>';
+            $output .= '<th>Member</th>';
+            $output .= '<th>Role</th>';
+            $output .= '<th>Est. Hrs</th>';
+            $output .= '<th>Comm. SP</th>';
+            $output .= '<th>Del. SP</th>';
+            $output .= '<th>Velocity</th>';
+            $output .= '<th>Hotfixes</th>';
+            $output .= '<th>Absent</th>';
+            $output .= '<th>Rating</th>';
+            $output .= '</tr>';
+            $output .= '</thead>';
+            
+            // Table body
+            $output .= '<tbody>';
+            foreach ($members as $member) {
+                $member_name = !empty($member['member_name']) ? $member['member_name'] : 'Unknown';
+                $member_role = !empty($member['member_role']) ? $member['member_role'] : '-';
+                $estimated_hours = !empty($member['member_estimated_hours']) ? intval($member['member_estimated_hours']) : 0;
+                $committed_sp = !empty($member['member_total_story_points']) ? intval($member['member_total_story_points']) : 0;
+                $delivered_sp = !empty($member['member_delivered_story_points']) ? intval($member['member_delivered_story_points']) : 0;
+                $hotfixes = !empty($member['member_hotfixes_count']) ? intval($member['member_hotfixes_count']) : 0;
+                $absent_days = !empty($member['member_absent_days']) ? intval($member['member_absent_days']) : 0;
+                $rating = !empty($member['member_rating']) ? floatval($member['member_rating']) : 0;
+                
+                // Calculate velocity percentage
+                $velocity_percent = 0;
+                if ($committed_sp > 0) {
+                    $velocity_percent = round(($delivered_sp / $committed_sp) * 100, 1);
+                }
+                
+                // Determine velocity class for color coding
+                $velocity_class = '';
+                if ($velocity_percent >= 90) {
+                    $velocity_class = 'dmtp-velocity-excellent';
+                } elseif ($velocity_percent >= 75) {
+                    $velocity_class = 'dmtp-velocity-good';
+                } elseif ($velocity_percent >= 50) {
+                    $velocity_class = 'dmtp-velocity-average';
+                } else {
+                    $velocity_class = 'dmtp-velocity-poor';
+                }
+                
+                // Rating class for color coding
+                $rating_class = '';
+                if ($rating >= 4.5) {
+                    $rating_class = 'dmtp-rating-excellent';
+                } elseif ($rating >= 3.5) {
+                    $rating_class = 'dmtp-rating-good';
+                } elseif ($rating >= 2.5) {
+                    $rating_class = 'dmtp-rating-average';
+                } else {
+                    $rating_class = 'dmtp-rating-poor';
+                }
+                
+                $output .= '<tr>';
+                $output .= '<td class="dmtp-member-name" title="' . esc_attr($member_name) . '">' . esc_html($member_name) . '</td>';
+                $output .= '<td class="dmtp-member-role">' . esc_html($member_role) . '</td>';
+                $output .= '<td class="dmtp-estimated-hours">' . esc_html($estimated_hours) . 'h</td>';
+                $output .= '<td class="dmtp-committed-sp">' . esc_html($committed_sp) . '</td>';
+                $output .= '<td class="dmtp-delivered-sp">' . esc_html($delivered_sp) . '</td>';
+                $output .= '<td class="dmtp-velocity ' . $velocity_class . '">' . esc_html($velocity_percent) . '%</td>';
+                $output .= '<td class="dmtp-hotfixes">' . esc_html($hotfixes) . '</td>';
+                $output .= '<td class="dmtp-absent-days">' . esc_html($absent_days) . 'd</td>';
+                $output .= '<td class="dmtp-rating ' . $rating_class . '">' . esc_html(number_format($rating, 1)) . '/5</td>';
+                $output .= '</tr>';
+                
+                // Add retrospective notes row if available
+                if (!empty($member['member_retrospective_notes'])) {
+                    $output .= '<tr class="dmtp-member-notes-row">';
+                    $output .= '<td colspan="9" class="dmtp-member-notes">';
+                    $output .= '<strong>Notes:</strong> ' . esc_html($member['member_retrospective_notes']);
+                    $output .= '</td>';
+                    $output .= '</tr>';
+                }
+            }
+            $output .= '</tbody>';
+            
+            $output .= '</table>';
+            $output .= '</div>';
+            
+            return $output;
+        }
+
+        /**
+         * Render hotfixes table.
+         *
+         * @param array $hotfixes Hotfix data.
+         * @return string HTML for hotfixes table.
+         */
+        private function render_hotfixes_table($hotfixes) {
+            $output = '<div class="dmtp-hotfixes-table-wrapper">';
+            $output .= '<table class="dmtp-hotfixes-table">';
+            
+            // Table header
+            $output .= '<thead>';
+            $output .= '<tr>';
+            $output .= '<th>Team</th>';
+            $output .= '<th>Hotfixes</th>';
+            $output .= '</tr>';
+            $output .= '</thead>';
+            
+            // Table body
+            $output .= '<tbody>';
+            foreach ($hotfixes as $team_hotfix) {
+                $team_name = !empty($team_hotfix['team_name']) ? $team_hotfix['team_name'] : 'Unknown';
+                $hotfix_count = !empty($team_hotfix['team_hotfix_list']) ? count($team_hotfix['team_hotfix_list']) : 0;
+                
+                $output .= '<tr>';
+                $output .= '<td class="dmtp-team-name" title="' . esc_attr($team_name) . '">' . esc_html($team_name) . '</td>';
+                $output .= '<td class="dmtp-hotfixes">' . esc_html($hotfix_count) . '</td>';
+                $output .= '</tr>';
+            }
+            $output .= '</tbody>';
+            
+            $output .= '</table>';
+            $output .= '</div>';
+            
+            return $output;
+        }
+
+        /**
+         * Count total hotfixes.
+         *
+         * @param array $hotfixes Hotfix data.
+         * @return int Total hotfix count.
+         */
+        private function count_total_hotfixes($hotfixes) {
+            $hotfix_count = 0;
+            foreach ($hotfixes as $team_hotfix) {
+                if (!empty($team_hotfix['team_hotfix_list'])) {
+                    $hotfix_count += count($team_hotfix['team_hotfix_list']);
+                }
+            }
+            return $hotfix_count;
+        }
     }
 } 
