@@ -1,11 +1,13 @@
 /* Placeholder CSS */ 
 
 /* =============================================================================
-   DMTP Sprint Roadmap Styles
+   DMTP Sprint Roadmap, Marketing, and Documentation Styles
    ============================================================================= */
 
 /* Base Styles */
-.dmtp-sprint-roadmap {
+.dmtp-sprint-roadmap,
+.dmtp-sprint-marketing,
+.dmtp-sprint-documentation {
     max-width: 1200px;
     margin: 0 auto;
     padding: 10px;
@@ -670,12 +672,16 @@
 
 /* Member Contributions Toggle and Table Styles */
 .dmtp-members-toggle,
-.dmtp-hotfixes-toggle {
+.dmtp-hotfixes-toggle,
+.dmtp-marketing-toggle,
+.dmtp-documentation-toggle {
     margin: 8px 0;
 }
 
 .dmtp-toggle-members,
-.dmtp-toggle-hotfixes {
+.dmtp-toggle-hotfixes,
+.dmtp-toggle-marketing,
+.dmtp-toggle-documentation {
     background: #f8f9fa;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -690,7 +696,9 @@
 }
 
 .dmtp-toggle-members:hover,
-.dmtp-toggle-hotfixes:hover {
+.dmtp-toggle-hotfixes:hover,
+.dmtp-toggle-marketing:hover,
+.dmtp-toggle-documentation:hover {
     background: #e9ecef;
     border-color: #adb5bd;
 }
@@ -698,7 +706,11 @@
 .dmtp-toggle-members:active,
 .dmtp-toggle-members.active,
 .dmtp-toggle-hotfixes:active,
-.dmtp-toggle-hotfixes.active {
+.dmtp-toggle-hotfixes.active,
+.dmtp-toggle-marketing:active,
+.dmtp-toggle-marketing.active,
+.dmtp-toggle-documentation:active,
+.dmtp-toggle-documentation.active {
     background: #007cba;
     color: white;
     border-color: #006ba1;
@@ -706,16 +718,58 @@
 
 /* Timeline specific toggles */
 .dmtp-timeline-members .dmtp-toggle-members,
-.dmtp-timeline-hotfixes .dmtp-toggle-hotfixes {
+.dmtp-timeline-hotfixes .dmtp-toggle-hotfixes,
+.dmtp-timeline-marketing .dmtp-toggle-marketing,
+.dmtp-timeline-documentation .dmtp-toggle-documentation {
     padding: 4px 8px;
     font-size: 11px;
 }
 
 /* Card specific toggles */
 .dmtp-card-members .dmtp-toggle-members,
-.dmtp-card-hotfixes .dmtp-toggle-hotfixes {
+.dmtp-card-hotfixes .dmtp-toggle-hotfixes,
+.dmtp-card-marketing .dmtp-toggle-marketing,
+.dmtp-card-documentation .dmtp-toggle-documentation {
     font-size: 11px;
     margin: 6px 0;
+}
+
+/* Marketing Toggle specific styling */
+.dmtp-toggle-marketing {
+    background: #e8f5e8;
+    border-color: #4caf50;
+    color: #2e7d32;
+}
+
+.dmtp-toggle-marketing:hover {
+    background: #c8e6c9;
+    border-color: #388e3c;
+}
+
+.dmtp-toggle-marketing:active,
+.dmtp-toggle-marketing.active {
+    background: #4caf50;
+    color: white;
+    border-color: #388e3c;
+}
+
+/* Documentation Toggle specific styling */
+.dmtp-toggle-documentation {
+    background: #e3f2fd;
+    border-color: #2196f3;
+    color: #1565c0;
+}
+
+.dmtp-toggle-documentation:hover {
+    background: #bbdefb;
+    border-color: #1976d2;
+}
+
+.dmtp-toggle-documentation:active,
+.dmtp-toggle-documentation.active {
+    background: #2196f3;
+    color: white;
+    border-color: #1976d2;
 }
 
 /* Hotfixes Toggle specific styling */
@@ -739,7 +793,9 @@
 
 /* Member Table Wrapper */
 .dmtp-member-table-wrapper,
-.dmtp-hotfixes-table-wrapper {
+.dmtp-hotfixes-table-wrapper,
+.dmtp-marketing-table-wrapper,
+.dmtp-documentation-table-wrapper {
     margin: 10px 0;
     background: #fff;
     border: 1px solid #e9ecef;
@@ -747,6 +803,18 @@
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     position: relative;
+}
+
+/* Marketing Table specific styling */
+.dmtp-marketing-table-wrapper {
+    border-color: #4caf50;
+    background: #f1f8e9;
+}
+
+/* Documentation Table specific styling */
+.dmtp-documentation-table-wrapper {
+    border-color: #2196f3;
+    background: #e8f4fd;
 }
 
 /* Hotfixes Table specific styling */
@@ -757,7 +825,9 @@
 
 /* Add scrolling indicator for horizontal scroll */
 .dmtp-member-table-wrapper.dmtp-scrollable::after,
-.dmtp-hotfixes-table-wrapper.dmtp-scrollable::after {
+.dmtp-hotfixes-table-wrapper.dmtp-scrollable::after,
+.dmtp-marketing-table-wrapper.dmtp-scrollable::after,
+.dmtp-documentation-table-wrapper.dmtp-scrollable::after {
     content: "→ Scroll to see more";
     position: absolute;
     right: 10px;
@@ -773,32 +843,19 @@
     opacity: 0.8;
 }
 
+/* Marketing scroll indicator */
+.dmtp-marketing-table-wrapper.dmtp-scrollable::after {
+    background: rgba(76, 175, 80, 0.9);
+}
+
+/* Documentation scroll indicator */
+.dmtp-documentation-table-wrapper.dmtp-scrollable::after {
+    background: rgba(33, 150, 243, 0.9);
+}
+
 /* Hotfixes scroll indicator */
 .dmtp-hotfixes-table-wrapper.dmtp-scrollable::after {
     background: rgba(253, 150, 68, 0.9);
-}
-
-/* Hide scroll indicator on mobile where it's expected */
-@media (max-width: 480px) {
-    .dmtp-member-table-wrapper.dmtp-scrollable::after,
-    .dmtp-hotfixes-table-wrapper.dmtp-scrollable::after {
-        display: none;
-    }
-    
-    .dmtp-member-table th,
-    .dmtp-member-table td,
-    .dmtp-hotfixes-table th,
-    .dmtp-hotfixes-table td {
-        padding: 4px 6px;
-        font-size: 10px;
-        max-width: 80px;
-    }
-    
-    .dmtp-toggle-members,
-    .dmtp-toggle-hotfixes {
-        font-size: 10px;
-        padding: 4px 6px;
-    }
 }
 
 /* Table hover effects */
@@ -1150,4 +1207,503 @@
 .dmtp-no-results p {
     margin: 0;
     font-size: 14px;
+}
+
+/* Member and Hotfixes Tables */
+.dmtp-member-table,
+.dmtp-hotfixes-table,
+.dmtp-marketing-table,
+.dmtp-documentation-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    font-size: 11px;
+    background: white;
+}
+
+.dmtp-member-table thead,
+.dmtp-hotfixes-table thead,
+.dmtp-marketing-table thead,
+.dmtp-documentation-table thead {
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.dmtp-member-table th,
+.dmtp-member-table td,
+.dmtp-hotfixes-table th,
+.dmtp-hotfixes-table td,
+.dmtp-marketing-table th,
+.dmtp-marketing-table td,
+.dmtp-documentation-table th,
+.dmtp-documentation-table td {
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 1px solid #f1f3f4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+
+/* Marketing Table specific styling */
+.dmtp-marketing-table thead {
+    background: #e8f5e8;
+    border-bottom-color: #4caf50;
+}
+
+.dmtp-marketing-table th {
+    font-weight: 600;
+    color: #2e7d32;
+}
+
+/* Documentation Table specific styling */
+.dmtp-documentation-table thead {
+    background: #e3f2fd;
+    border-bottom-color: #2196f3;
+}
+
+.dmtp-documentation-table th {
+    font-weight: 600;
+    color: #1565c0;
+}
+
+/* Hotfixes Table specific styling */
+.dmtp-hotfixes-table thead {
+    background: #fff3cd;
+    border-bottom-color: #ffb84d;
+}
+
+.dmtp-hotfixes-table th {
+    font-weight: 600;
+    color: #856404;
+}
+
+/* Task name column styling */
+.dmtp-task-name {
+    max-width: 200px !important;
+    white-space: normal !important;
+    word-wrap: break-word;
+    line-height: 1.3;
+}
+
+/* Status Classes */
+.dmtp-status-completed {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.dmtp-status-pending {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.dmtp-status-verified {
+    color: #007bff;
+    font-weight: 600;
+}
+
+.dmtp-status-not-verified {
+    color: #6c757d;
+    font-weight: 600;
+}
+
+/* Status icons */
+.dmtp-status-completed::before {
+    content: "✓ ";
+}
+
+.dmtp-status-pending::before {
+    content: "⏳ ";
+}
+
+.dmtp-status-verified::before {
+    content: "✅ ";
+}
+
+.dmtp-status-not-verified::before {
+    content: "❌ ";
+}
+
+/* =============================================================================
+   DMTP Marketing and Documentation Specific Styles
+   ============================================================================= */
+
+/* Marketing View */
+.dmtp-marketing-view {
+    position: relative;
+}
+
+.dmtp-marketing-item {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dmtp-marketing-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.dmtp-marketing-header {
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.dmtp-marketing-checklist h4 {
+    color: #2c3e50;
+    margin: 0 0 15px 0;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+.dmtp-no-tasks {
+    color: #6c757d;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+/* Documentation View */
+.dmtp-documentation-view {
+    position: relative;
+}
+
+.dmtp-documentation-item {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dmtp-documentation-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.dmtp-documentation-header {
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.dmtp-documentation-checklist h4 {
+    color: #2c3e50;
+    margin: 0 0 15px 0;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+/* Status classes for marketing and documentation items */
+.dmtp-sprint-upcoming .dmtp-marketing-item,
+.dmtp-sprint-upcoming .dmtp-documentation-item {
+    border-left: 4px solid #ffc107;
+}
+
+.dmtp-sprint-active .dmtp-marketing-item,
+.dmtp-sprint-active .dmtp-documentation-item {
+    border-left: 4px solid #28a745;
+}
+
+.dmtp-sprint-completed .dmtp-marketing-item,
+.dmtp-sprint-completed .dmtp-documentation-item {
+    border-left: 4px solid #6c757d;
+}
+
+/* Responsive design for marketing and documentation views */
+@media (max-width: 768px) {
+    .dmtp-sprint-marketing,
+    .dmtp-sprint-documentation {
+        padding: 5px;
+    }
+    
+    .dmtp-marketing-item,
+    .dmtp-documentation-item {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .dmtp-marketing-header,
+    .dmtp-documentation-header {
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .dmtp-marketing-checklist h4,
+    .dmtp-documentation-checklist h4 {
+        font-size: 1em;
+        margin-bottom: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dmtp-marketing-item,
+    .dmtp-documentation-item {
+        padding: 12px;
+    }
+    
+    .dmtp-marketing-checklist h4,
+    .dmtp-documentation-checklist h4 {
+        font-size: 0.95em;
+    }
+    
+    .dmtp-no-tasks {
+        padding: 15px;
+        font-size: 13px;
+    }
+}
+
+/* =============================================================================
+   Interactive Task Status Updates
+   ============================================================================= */
+
+/* Interactive Task Tables */
+.dmtp-tasks-table-wrapper {
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin: 15px 0;
+    border: 1px solid #e9ecef;
+}
+
+.dmtp-tasks-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    font-size: 13px;
+}
+
+.dmtp-tasks-table th {
+    background: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.dmtp-tasks-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f3f4;
+    vertical-align: middle;
+    transition: background-color 0.2s ease;
+}
+
+.dmtp-tasks-table tr:last-child td {
+    border-bottom: none;
+}
+
+.dmtp-tasks-table tr:hover {
+    background: #f8f9fa;
+}
+
+.dmtp-task-name {
+    font-weight: 500;
+    color: #2c3e50;
+    max-width: 300px;
+    word-wrap: break-word;
+    line-height: 1.4;
+}
+
+/* Status and Verified Columns - Proper Alignment */
+.dmtp-status-column,
+.dmtp-verified-column {
+    width: 80px;
+    text-align: center;
+    padding: 12px 8px !important;
+}
+
+/* Simple Checkbox Design */
+.dmtp-status-checkbox,
+.dmtp-verified-checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+}
+
+.dmtp-status-checkbox input,
+.dmtp-verified-checkbox input {
+    display: none;
+}
+
+.dmtp-checkmark {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #ced4da;
+    border-radius: 3px;
+    background: white;
+    position: relative;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.dmtp-checkmark:hover {
+    border-color: #007cba;
+    transform: scale(1.05);
+}
+
+.dmtp-checkmark::after {
+    content: '';
+    position: absolute;
+    display: none;
+    left: 5px;
+    top: 1px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* Checked State */
+.dmtp-task-checkbox:checked + .dmtp-checkmark {
+    background: #28a745;
+    border-color: #28a745;
+}
+
+.dmtp-task-checkbox:checked + .dmtp-checkmark::after {
+    display: block;
+}
+
+/* Disabled State */
+.dmtp-task-checkbox:disabled + .dmtp-checkmark {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Loading State */
+.dmtp-updating .dmtp-checkmark {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.dmtp-updating .dmtp-checkmark::after {
+    display: none;
+}
+
+.dmtp-updating .dmtp-checkmark::before {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #007cba;
+    border-radius: 50%;
+    animation: dmtp-spin 1s linear infinite;
+}
+
+@keyframes dmtp-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Status Visual Indicators */
+.dmtp-status-completed {
+    background: #e8f5e8;
+}
+
+.dmtp-status-pending {
+    background: #fff3cd;
+}
+
+.dmtp-status-verified {
+    background: #e1f5fe;
+}
+
+.dmtp-status-not-verified {
+    background: #ffebee;
+}
+
+/* Marketing Table Specific Styling */
+.dmtp-marketing-table-wrapper .dmtp-tasks-table th {
+    background: #e8f5e8;
+    border-bottom-color: #4caf50;
+}
+
+.dmtp-marketing-table-wrapper .dmtp-tasks-table th {
+    color: #2e7d32;
+}
+
+/* Documentation Table Specific Styling */
+.dmtp-documentation-table-wrapper .dmtp-tasks-table th {
+    background: #e3f2fd;
+    border-bottom-color: #2196f3;
+}
+
+.dmtp-documentation-table-wrapper .dmtp-tasks-table th {
+    color: #1565c0;
+}
+
+/* Responsive Design for Task Tables */
+@media (max-width: 768px) {
+    .dmtp-tasks-table-wrapper {
+        margin: 12px 0;
+        font-size: 12px;
+    }
+    
+    .dmtp-tasks-table th,
+    .dmtp-tasks-table td {
+        padding: 8px 12px;
+    }
+    
+    .dmtp-task-name {
+        max-width: 200px;
+        font-size: 12px;
+    }
+    
+    .dmtp-status-column,
+    .dmtp-verified-column {
+        width: 70px;
+        padding: 8px 6px !important;
+    }
+    
+    .dmtp-checkmark {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .dmtp-checkmark::after {
+        left: 4px;
+        top: 1px;
+        width: 4px;
+        height: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dmtp-checkmark {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .dmtp-checkmark::after {
+        left: 3px;
+        top: 0px;
+        width: 3px;
+        height: 7px;
+    }
+    
+    .dmtp-status-column,
+    .dmtp-verified-column {
+        width: 60px;
+    }
 } 

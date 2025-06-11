@@ -127,6 +127,14 @@ if (!class_exists('DMTP_Loader')) {
             
             // Register shortcodes
             $this->add_shortcode('dmtp_sprint_roadmap', $public, 'dmtp_sprint_roadmap_shortcode');
+            $this->add_shortcode('dmtp_sprint_marketing', $public, 'dmtp_sprint_marketing_shortcode');
+            $this->add_shortcode('dmtp_sprint_documentation', $public, 'dmtp_sprint_documentation_shortcode');
+
+            // Register AJAX handlers for task status updates
+            $this->add_action('wp_ajax_dmtp_update_marketing_task', $public, 'ajax_update_marketing_task_status');
+            $this->add_action('wp_ajax_nopriv_dmtp_update_marketing_task', $public, 'ajax_update_marketing_task_status');
+            $this->add_action('wp_ajax_dmtp_update_documentation_task', $public, 'ajax_update_documentation_task_status');
+            $this->add_action('wp_ajax_nopriv_dmtp_update_documentation_task', $public, 'ajax_update_documentation_task_status');
         }
 
         /**

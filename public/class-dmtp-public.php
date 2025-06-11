@@ -32,6 +32,15 @@ if (!class_exists('DMTP_Public')) {
                 DMTP_VERSION,
                 true
             );
+            
+            // Localize script for AJAX
+            wp_localize_script('dmtp-public-scripts', 'dmtp_ajax', array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('dmtp_update_task_status'),
+                'updating_text' => __('Updating...', 'dmtp'),
+                'error_text' => __('Error updating status. Please try again.', 'dmtp'),
+                'success_text' => __('Status updated successfully!', 'dmtp')
+            ));
         }
         
         /**
@@ -85,6 +94,92 @@ if (!class_exists('DMTP_Public')) {
                     break;
             }
             
+            $output .= '</div>';
+            
+            return $output;
+        }
+
+        /**
+         * Sprint marketing shortcode handler.
+         * Usage: [dmtp_sprint_marketing team="Marketing" count="5" status="all"]
+         *
+         * @param array $atts Shortcode attributes.
+         * @return string Rendered HTML output.
+         */
+        public function dmtp_sprint_marketing_shortcode($atts) {
+            // Parse shortcode attributes
+            $atts = shortcode_atts(array(
+                'team' => '',
+                'count' => 10,
+                'status' => 'all',
+                'show_team_filter' => 'true'
+            ), $atts, 'dmtp_sprint_marketing');
+
+            // Check user permissions
+            if (!$this->user_can_view_sprints()) {
+                return '<div class="dmtp-error">You do not have permission to view sprint data.</div>';
+            }
+
+            // Get sprint data
+            $sprints = $this->get_sprint_data($atts);
+            
+            if (empty($sprints)) {
+                return '<div class="dmtp-no-data">No sprint data available.</div>';
+            }
+
+            // Generate marketing-specific output
+            $output = '<div class="dmtp-sprint-marketing">';
+            
+            // Add team filter if enabled
+            if ($atts['show_team_filter'] === 'true') {
+                $output .= $this->render_team_filter($atts['team']);
+            }
+            
+            // Render marketing view
+            $output .= $this->render_marketing_view($sprints);
+            $output .= '</div>';
+            
+            return $output;
+        }
+
+        /**
+         * Sprint documentation shortcode handler.
+         * Usage: [dmtp_sprint_documentation team="Documentation" count="5" status="all"]
+         *
+         * @param array $atts Shortcode attributes.
+         * @return string Rendered HTML output.
+         */
+        public function dmtp_sprint_documentation_shortcode($atts) {
+            // Parse shortcode attributes
+            $atts = shortcode_atts(array(
+                'team' => '',
+                'count' => 10,
+                'status' => 'all',
+                'show_team_filter' => 'true'
+            ), $atts, 'dmtp_sprint_documentation');
+
+            // Check user permissions
+            if (!$this->user_can_view_sprints()) {
+                return '<div class="dmtp-error">You do not have permission to view sprint data.</div>';
+            }
+
+            // Get sprint data
+            $sprints = $this->get_sprint_data($atts);
+            
+            if (empty($sprints)) {
+                return '<div class="dmtp-no-data">No sprint data available.</div>';
+            }
+
+            // Generate documentation-specific output
+            $output = '<div class="dmtp-sprint-documentation">';
+            
+            // Add team filter if enabled
+            if ($atts['show_team_filter'] === 'true') {
+                $output .= $this->render_team_filter($atts['team']);
+            }
+            
+            // Render documentation view
+            $output .= $this->render_documentation_view($sprints);
             $output .= '</div>';
             
             return $output;
@@ -159,8 +254,7 @@ if (!class_exists('DMTP_Public')) {
                     
                     $sprint_data = array(
                         'id' => $post_id,
-                        'title' => get_the_title(),
-                        'content' => get_the_content(),
+                        'title' => get_the_title($post_id),
                         'start_date' => get_field('start_date', $post_id),
                         'end_date' => get_field('end_date', $post_id),
                         'demonstration_date' => get_field('demonstration_date', $post_id),
@@ -169,7 +263,9 @@ if (!class_exists('DMTP_Public')) {
                         'member_performance' => get_field('dmtp_member_performance', $post_id),
                         'planning_note' => get_field('planning_note', $post_id),
                         'retrospective_note' => get_field('retrospective_note', $post_id),
-                        'sprint_team_hotfixes' => get_field('sprint_team_hotfixes', $post_id)
+                        'sprint_team_hotfixes' => get_field('sprint_team_hotfixes', $post_id),
+                        'marketing_tasks' => get_field('sprint_marketing_tasks', $post_id),
+                        'documentation_tasks' => get_field('sprint_documentation_tasks', $post_id)
                     );
                     
                     // Filter by team if specified
@@ -308,6 +404,36 @@ if (!class_exists('DMTP_Public')) {
                     }
                 }
                 
+                // Marketing tasks toggle button
+                if (!empty($sprint['marketing_tasks'])) {
+                    $marketing_count = count($sprint['marketing_tasks']);
+                    $output .= '<div class="dmtp-marketing-toggle">';
+                    $output .= '<button class="dmtp-toggle-marketing" data-sprint-id="' . esc_attr($sprint['id']) . '">';
+                    $output .= '📈 View Marketing Tasks (' . $marketing_count . ' tasks)';
+                    $output .= '</button>';
+                    $output .= '</div>';
+                    
+                    // Marketing tasks table (hidden by default)
+                    $output .= '<div class="dmtp-marketing-table" id="dmtp-marketing-' . esc_attr($sprint['id']) . '" style="display: none;">';
+                    $output .= $this->render_marketing_tasks_table($sprint['marketing_tasks'], $sprint['id']);
+                    $output .= '</div>';
+                }
+                
+                // Documentation tasks toggle button
+                if (!empty($sprint['documentation_tasks'])) {
+                    $documentation_count = count($sprint['documentation_tasks']);
+                    $output .= '<div class="dmtp-documentation-toggle">';
+                    $output .= '<button class="dmtp-toggle-documentation" data-sprint-id="' . esc_attr($sprint['id']) . '">';
+                    $output .= '📚 View Documentation Tasks (' . $documentation_count . ' tasks)';
+                    $output .= '</button>';
+                    $output .= '</div>';
+                    
+                    // Documentation tasks table (hidden by default)
+                    $output .= '<div class="dmtp-documentation-table" id="dmtp-documentation-' . esc_attr($sprint['id']) . '" style="display: none;">';
+                    $output .= $this->render_documentation_tasks_table($sprint['documentation_tasks'], $sprint['id']);
+                    $output .= '</div>';
+                }
+                
                 // Important dates
                 $output .= '<div class="dmtp-important-dates">';
                 if (!empty($sprint['demonstration_date'])) {
@@ -388,6 +514,36 @@ if (!class_exists('DMTP_Public')) {
                     }
                 }
                 
+                // Marketing tasks toggle button
+                if (!empty($sprint['marketing_tasks'])) {
+                    $marketing_count = count($sprint['marketing_tasks']);
+                    $output .= '<div class="dmtp-marketing-toggle dmtp-timeline-marketing">';
+                    $output .= '<button class="dmtp-toggle-marketing" data-sprint-id="' . esc_attr($sprint['id']) . '">';
+                    $output .= '📈 Marketing (' . $marketing_count . ')';
+                    $output .= '</button>';
+                    $output .= '</div>';
+                    
+                    // Marketing tasks table (hidden by default)
+                    $output .= '<div class="dmtp-marketing-table" id="dmtp-marketing-' . esc_attr($sprint['id']) . '" style="display: none;">';
+                    $output .= $this->render_marketing_tasks_table($sprint['marketing_tasks'], $sprint['id']);
+                    $output .= '</div>';
+                }
+                
+                // Documentation tasks toggle button
+                if (!empty($sprint['documentation_tasks'])) {
+                    $documentation_count = count($sprint['documentation_tasks']);
+                    $output .= '<div class="dmtp-documentation-toggle dmtp-timeline-documentation">';
+                    $output .= '<button class="dmtp-toggle-documentation" data-sprint-id="' . esc_attr($sprint['id']) . '">';
+                    $output .= '📚 Docs (' . $documentation_count . ')';
+                    $output .= '</button>';
+                    $output .= '</div>';
+                    
+                    // Documentation tasks table (hidden by default)
+                    $output .= '<div class="dmtp-documentation-table" id="dmtp-documentation-' . esc_attr($sprint['id']) . '" style="display: none;">';
+                    $output .= $this->render_documentation_tasks_table($sprint['documentation_tasks'], $sprint['id']);
+                    $output .= '</div>';
+                }
+                
                 $output .= '</div>';
                 $output .= '</div>';
             }
@@ -465,6 +621,36 @@ if (!class_exists('DMTP_Public')) {
                     }
                 }
                 
+                // Marketing tasks toggle button
+                if (!empty($sprint['marketing_tasks'])) {
+                    $marketing_count = count($sprint['marketing_tasks']);
+                    $output .= '<div class="dmtp-marketing-toggle dmtp-card-marketing">';
+                    $output .= '<button class="dmtp-toggle-marketing" data-sprint-id="' . esc_attr($sprint['id']) . '">';
+                    $output .= '📈 Marketing (' . $marketing_count . ')';
+                    $output .= '</button>';
+                    $output .= '</div>';
+                    
+                    // Marketing tasks table (hidden by default)
+                    $output .= '<div class="dmtp-marketing-table" id="dmtp-marketing-' . esc_attr($sprint['id']) . '" style="display: none;">';
+                    $output .= $this->render_marketing_tasks_table($sprint['marketing_tasks'], $sprint['id']);
+                    $output .= '</div>';
+                }
+                
+                // Documentation tasks toggle button
+                if (!empty($sprint['documentation_tasks'])) {
+                    $documentation_count = count($sprint['documentation_tasks']);
+                    $output .= '<div class="dmtp-documentation-toggle dmtp-card-documentation">';
+                    $output .= '<button class="dmtp-toggle-documentation" data-sprint-id="' . esc_attr($sprint['id']) . '">';
+                    $output .= '📚 Documentation (' . $documentation_count . ')';
+                    $output .= '</button>';
+                    $output .= '</div>';
+                    
+                    // Documentation tasks table (hidden by default)
+                    $output .= '<div class="dmtp-documentation-table" id="dmtp-documentation-' . esc_attr($sprint['id']) . '" style="display: none;">';
+                    $output .= $this->render_documentation_tasks_table($sprint['documentation_tasks'], $sprint['id']);
+                    $output .= '</div>';
+                }
+                
                 $output .= '</div>';
                 
                 // Card footer
@@ -473,6 +659,92 @@ if (!class_exists('DMTP_Public')) {
                     $output .= '<span class="dmtp-demo">🎯 Demo: ' . $this->format_date($sprint['demonstration_date']) . '</span>';
                 }
                 $output .= '</div>';
+                
+                $output .= '</div>';
+            }
+            
+            $output .= '</div>';
+            
+            return $output;
+        }
+
+        /**
+         * Render marketing view for sprints.
+         *
+         * @param array $sprints Sprint data.
+         * @return string HTML for marketing view.
+         */
+        private function render_marketing_view($sprints) {
+            $output = '<div class="dmtp-marketing-view">';
+            
+            foreach ($sprints as $sprint) {
+                $status_class = $this->get_sprint_status_class($sprint);
+                $teams_data = !empty($sprint['selected_teams']) ? implode(',', $sprint['selected_teams']) : '';
+                
+                $output .= '<div class="dmtp-marketing-item ' . $status_class . '" data-teams="' . esc_attr($teams_data) . '">';
+                
+                // Sprint header - ONLY title and dates
+                $output .= '<div class="dmtp-marketing-header">';
+                $output .= '<h3 class="dmtp-sprint-title">' . esc_html($sprint['title']) . '</h3>';
+                $output .= '<div class="dmtp-sprint-dates">';
+                $output .= '<span class="dmtp-start-date">' . $this->format_date($sprint['start_date']) . '</span>';
+                $output .= ' → ';
+                $output .= '<span class="dmtp-end-date">' . $this->format_date($sprint['end_date']) . '</span>';
+                $output .= '</div>';
+                $output .= '</div>';
+                
+                // Marketing checklist ONLY - no other content
+                if (!empty($sprint['marketing_tasks'])) {
+                    $output .= '<div class="dmtp-marketing-checklist">';
+                    $output .= '<h4>📈 Marketing Tasks</h4>';
+                    $output .= $this->render_marketing_tasks_table($sprint['marketing_tasks'], $sprint['id']);
+                    $output .= '</div>';
+                } else {
+                    $output .= '<div class="dmtp-no-tasks">No marketing tasks for this sprint.</div>';
+                }
+                
+                $output .= '</div>';
+            }
+            
+            $output .= '</div>';
+            
+            return $output;
+        }
+
+        /**
+         * Render documentation view for sprints.
+         *
+         * @param array $sprints Sprint data.
+         * @return string HTML for documentation view.
+         */
+        private function render_documentation_view($sprints) {
+            $output = '<div class="dmtp-documentation-view">';
+            
+            foreach ($sprints as $sprint) {
+                $status_class = $this->get_sprint_status_class($sprint);
+                $teams_data = !empty($sprint['selected_teams']) ? implode(',', $sprint['selected_teams']) : '';
+                
+                $output .= '<div class="dmtp-documentation-item ' . $status_class . '" data-teams="' . esc_attr($teams_data) . '">';
+                
+                // Sprint header
+                $output .= '<div class="dmtp-documentation-header">';
+                $output .= '<h3 class="dmtp-sprint-title">' . esc_html($sprint['title']) . '</h3>';
+                $output .= '<div class="dmtp-sprint-dates">';
+                $output .= '<span class="dmtp-start-date">' . $this->format_date($sprint['start_date']) . '</span>';
+                $output .= ' → ';
+                $output .= '<span class="dmtp-end-date">' . $this->format_date($sprint['end_date']) . '</span>';
+                $output .= '</div>';
+                $output .= '</div>';
+                
+                // Documentation checklist
+                if (!empty($sprint['documentation_tasks'])) {
+                    $output .= '<div class="dmtp-documentation-checklist">';
+                    $output .= '<h4>📚 Documentation Tasks</h4>';
+                    $output .= $this->render_documentation_tasks_table($sprint['documentation_tasks'], $sprint['id']);
+                    $output .= '</div>';
+                } else {
+                    $output .= '<div class="dmtp-no-tasks">No documentation tasks for this sprint.</div>';
+                }
                 
                 $output .= '</div>';
             }
@@ -788,6 +1060,244 @@ if (!class_exists('DMTP_Public')) {
                 }
             }
             return $hotfix_count;
+        }
+
+        /**
+         * Render marketing tasks table.
+         *
+         * @param array $marketing_tasks Marketing tasks data.
+         * @return string HTML for marketing tasks table.
+         */
+        private function render_marketing_tasks_table($marketing_tasks, $sprint_id) {
+            if (empty($marketing_tasks)) {
+                return '<div class="dmtp-no-tasks">No marketing tasks available.</div>';
+            }
+
+            $output = '<div class="dmtp-tasks-table-wrapper">';
+            $output .= '<table class="dmtp-tasks-table dmtp-marketing-tasks-table">';
+            $output .= '<thead>';
+            $output .= '<tr>';
+            $output .= '<th>Task</th>';
+            $output .= '<th class="dmtp-status-column">Status</th>';
+            $output .= '<th class="dmtp-verified-column">Verified</th>';
+            $output .= '</tr>';
+            $output .= '</thead>';
+            $output .= '<tbody>';
+
+            $can_edit = $this->user_can_edit_tasks();
+
+            foreach ($marketing_tasks as $index => $task) {
+                $task_status = !empty($task['marketing_task_status']) ? 'checked' : '';
+                $verified_status = !empty($task['marketing_verified_by_status']) ? 'checked' : '';
+                $status_class = !empty($task['marketing_task_status']) ? 'dmtp-status-completed' : 'dmtp-status-pending';
+                $verified_class = !empty($task['marketing_verified_by_status']) ? 'dmtp-status-verified' : 'dmtp-status-not-verified';
+                $disabled = $can_edit ? '' : 'disabled';
+
+                $output .= '<tr class="dmtp-task-row">';
+                $output .= '<td class="dmtp-task-name">' . esc_html($task['marketing_task_name']) . '</td>';
+                $output .= '<td class="dmtp-task-status ' . $status_class . '">';
+                $output .= '<label class="dmtp-status-checkbox">';
+                $output .= '<input type="checkbox" ' . $task_status . ' ' . $disabled . ' ';
+                $output .= 'data-sprint-id="' . esc_attr($sprint_id) . '" ';
+                $output .= 'data-task-index="' . esc_attr($index) . '" ';
+                $output .= 'data-field-type="status" ';
+                $output .= 'data-task-type="marketing" ';
+                $output .= 'class="dmtp-task-checkbox">';
+                $output .= '<span class="dmtp-checkmark"></span>';
+                $output .= '</label>';
+                $output .= '</td>';
+                $output .= '<td class="dmtp-task-verified ' . $verified_class . '">';
+                $output .= '<label class="dmtp-verified-checkbox">';
+                $output .= '<input type="checkbox" ' . $verified_status . ' ' . $disabled . ' ';
+                $output .= 'data-sprint-id="' . esc_attr($sprint_id) . '" ';
+                $output .= 'data-task-index="' . esc_attr($index) . '" ';
+                $output .= 'data-field-type="verified" ';
+                $output .= 'data-task-type="marketing" ';
+                $output .= 'class="dmtp-task-checkbox">';
+                $output .= '<span class="dmtp-checkmark"></span>';
+                $output .= '</label>';
+                $output .= '</td>';
+                $output .= '</tr>';
+            }
+
+            $output .= '</tbody>';
+            $output .= '</table>';
+            $output .= '</div>';
+
+            return $output;
+        }
+
+        /**
+         * Render documentation tasks table.
+         *
+         * @param array $documentation_tasks Documentation tasks data.
+         * @return string HTML for documentation tasks table.
+         */
+        private function render_documentation_tasks_table($documentation_tasks, $sprint_id) {
+            if (empty($documentation_tasks)) {
+                return '<div class="dmtp-no-tasks">No documentation tasks available.</div>';
+            }
+
+            $output = '<div class="dmtp-tasks-table-wrapper">';
+            $output .= '<table class="dmtp-tasks-table dmtp-documentation-tasks-table">';
+            $output .= '<thead>';
+            $output .= '<tr>';
+            $output .= '<th>Task</th>';
+            $output .= '<th class="dmtp-status-column">Status</th>';
+            $output .= '<th class="dmtp-verified-column">Verified</th>';
+            $output .= '</tr>';
+            $output .= '</thead>';
+            $output .= '<tbody>';
+
+            $can_edit = $this->user_can_edit_tasks();
+
+            foreach ($documentation_tasks as $index => $task) {
+                $task_status = !empty($task['documentation_task_status']) ? 'checked' : '';
+                $verified_status = !empty($task['documentation_verified_by_status']) ? 'checked' : '';
+                $status_class = !empty($task['documentation_task_status']) ? 'dmtp-status-completed' : 'dmtp-status-pending';
+                $verified_class = !empty($task['documentation_verified_by_status']) ? 'dmtp-status-verified' : 'dmtp-status-not-verified';
+                $disabled = $can_edit ? '' : 'disabled';
+
+                $output .= '<tr class="dmtp-task-row">';
+                $output .= '<td class="dmtp-task-name">' . esc_html($task['documentation_task_name']) . '</td>';
+                $output .= '<td class="dmtp-task-status ' . $status_class . '">';
+                $output .= '<label class="dmtp-status-checkbox">';
+                $output .= '<input type="checkbox" ' . $task_status . ' ' . $disabled . ' ';
+                $output .= 'data-sprint-id="' . esc_attr($sprint_id) . '" ';
+                $output .= 'data-task-index="' . esc_attr($index) . '" ';
+                $output .= 'data-field-type="status" ';
+                $output .= 'data-task-type="documentation" ';
+                $output .= 'class="dmtp-task-checkbox">';
+                $output .= '<span class="dmtp-checkmark"></span>';
+                $output .= '</label>';
+                $output .= '</td>';
+                $output .= '<td class="dmtp-task-verified ' . $verified_class . '">';
+                $output .= '<label class="dmtp-verified-checkbox">';
+                $output .= '<input type="checkbox" ' . $verified_status . ' ' . $disabled . ' ';
+                $output .= 'data-sprint-id="' . esc_attr($sprint_id) . '" ';
+                $output .= 'data-task-index="' . esc_attr($index) . '" ';
+                $output .= 'data-field-type="verified" ';
+                $output .= 'data-task-type="documentation" ';
+                $output .= 'class="dmtp-task-checkbox">';
+                $output .= '<span class="dmtp-checkmark"></span>';
+                $output .= '</label>';
+                $output .= '</td>';
+                $output .= '</tr>';
+            }
+
+            $output .= '</tbody>';
+            $output .= '</table>';
+            $output .= '</div>';
+
+            return $output;
+        }
+
+        /**
+         * Handle AJAX request to update marketing task status.
+         */
+        public function ajax_update_marketing_task_status() {
+            // Verify nonce
+            if (!wp_verify_nonce($_POST['nonce'], 'dmtp_update_task_status')) {
+                wp_die('Security check failed');
+            }
+
+            // Check user permissions
+            if (!$this->user_can_edit_tasks()) {
+                wp_die('Insufficient permissions');
+            }
+
+            $sprint_id = intval($_POST['sprint_id']);
+            $task_index = intval($_POST['task_index']);
+            $field_type = sanitize_text_field($_POST['field_type']); // 'status' or 'verified'
+            $new_value = $_POST['new_value'] === 'true' ? true : false;
+
+            // Get current marketing tasks
+            $marketing_tasks = get_field('sprint_marketing_tasks', $sprint_id);
+            
+            if (!empty($marketing_tasks) && isset($marketing_tasks[$task_index])) {
+                // Update the specific field
+                if ($field_type === 'status') {
+                    $marketing_tasks[$task_index]['marketing_task_status'] = $new_value;
+                } elseif ($field_type === 'verified') {
+                    $marketing_tasks[$task_index]['marketing_verified_by_status'] = $new_value;
+                }
+
+                // Save back to ACF
+                $updated = update_field('sprint_marketing_tasks', $marketing_tasks, $sprint_id);
+
+                if ($updated !== false) {
+                    wp_send_json_success(array(
+                        'message' => 'Task status updated successfully',
+                        'new_value' => $new_value
+                    ));
+                } else {
+                    wp_send_json_error('Failed to update database');
+                }
+            } else {
+                wp_send_json_error('Task not found');
+            }
+        }
+
+        /**
+         * Handle AJAX request to update documentation task status.
+         */
+        public function ajax_update_documentation_task_status() {
+            // Verify nonce
+            if (!wp_verify_nonce($_POST['nonce'], 'dmtp_update_task_status')) {
+                wp_die('Security check failed');
+            }
+
+            // Check user permissions
+            if (!$this->user_can_edit_tasks()) {
+                wp_die('Insufficient permissions');
+            }
+
+            $sprint_id = intval($_POST['sprint_id']);
+            $task_index = intval($_POST['task_index']);
+            $field_type = sanitize_text_field($_POST['field_type']); // 'status' or 'verified'
+            $new_value = $_POST['new_value'] === 'true' ? true : false;
+
+            // Get current documentation tasks
+            $documentation_tasks = get_field('sprint_documentation_tasks', $sprint_id);
+            
+            if (!empty($documentation_tasks) && isset($documentation_tasks[$task_index])) {
+                // Update the specific field
+                if ($field_type === 'status') {
+                    $documentation_tasks[$task_index]['documentation_task_status'] = $new_value;
+                } elseif ($field_type === 'verified') {
+                    $documentation_tasks[$task_index]['documentation_verified_by_status'] = $new_value;
+                }
+
+                // Save back to ACF
+                $updated = update_field('sprint_documentation_tasks', $documentation_tasks, $sprint_id);
+
+                if ($updated !== false) {
+                    wp_send_json_success(array(
+                        'message' => 'Task status updated successfully',
+                        'new_value' => $new_value
+                    ));
+                } else {
+                    wp_send_json_error('Failed to update database');
+                }
+            } else {
+                wp_send_json_error('Task not found');
+            }
+        }
+
+        /**
+         * Check if current user can edit tasks.
+         *
+         * @return bool True if user can edit tasks.
+         */
+        private function user_can_edit_tasks() {
+            if (!is_user_logged_in()) {
+                return false;
+            }
+            
+            $user = wp_get_current_user();
+            $allowed_roles = array('administrator', 'dmtp_manager', 'dmtp_developer', 'author', 'editor');
+            
+            return array_intersect($allowed_roles, $user->roles) ? true : false;
         }
     }
 } 

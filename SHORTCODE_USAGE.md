@@ -1,26 +1,79 @@
-# DMTP Sprint Roadmap Shortcode Usage Guide
+# DMTP Sprint Shortcodes Usage Guide
 
 ## Overview
 
-The `[dmtp_sprint_roadmap]` shortcode provides a comprehensive view of your team's sprint data in multiple formats.
+The DMTP plugin provides three specialized shortcodes for different sprint management needs:
+
+- **`[dmtp_sprint_roadmap]`** - Comprehensive view of sprint data with full metrics
+- **`[dmtp_sprint_marketing]`** - Focused view for marketing tasks and checklists
+- **`[dmtp_sprint_documentation]`** - Focused view for documentation tasks and checklists
 
 ## Basic Usage
 
+### Sprint Roadmap (Full View)
 ```
 [dmtp_sprint_roadmap]
 ```
+This will display all sprints in the default roadmap view with full metrics.
 
-This will display all sprints in the default roadmap view.
+### Sprint Marketing 
+```
+[dmtp_sprint_marketing]
+```
+This will display sprints with focus on marketing tasks and their completion status.
+
+### Sprint Documentation
+```
+[dmtp_sprint_documentation]
+```
+This will display sprints with focus on documentation tasks and their completion status.
 
 ## Shortcode Attributes
+
+### Common Attributes (All Shortcodes)
 
 | Attribute | Default | Description | Options |
 |-----------|---------|-------------|---------|
 | `team` | (all) | Filter sprints by team | Any team name configured in DMTP settings |
-| `view` | `roadmap` | Display format | `roadmap`, `timeline`, `cards` |
 | `count` | `10` | Number of sprints to display | Any positive integer |
 | `status` | `all` | Filter by sprint status | `all`, `active`, `completed`, `upcoming` |
-| `show_team_filter` | `false` | Show team filter dropdown | `true`, `false` |
+| `show_team_filter` | `true` | Show team filter dropdown | `true`, `false` |
+
+### Sprint Roadmap Specific Attributes
+
+| Attribute | Default | Description | Options |
+|-----------|---------|-------------|---------|
+| `view` | `roadmap` | Display format | `roadmap`, `timeline`, `cards` |
+
+**Note:** Marketing and Documentation shortcodes use a simplified single view format focused on their respective task lists.
+
+## Shortcode-Specific Features
+
+### Marketing Shortcode (`[dmtp_sprint_marketing]`)
+
+The marketing shortcode displays:
+- **Sprint Name** - Clear sprint identification
+- **Sprint Dates** - Start and end dates for planning
+- **Marketing Checklist** - Complete task list with:
+  - Task names and descriptions
+  - Task completion status (Completed/Pending)
+  - Verification status (Verified/Not Verified)
+  - Visual status indicators with color coding
+
+Perfect for marketing teams to track campaign tasks, content creation, and promotional activities across sprints.
+
+### Documentation Shortcode (`[dmtp_sprint_documentation]`)
+
+The documentation shortcode displays:
+- **Sprint Name** - Clear sprint identification  
+- **Sprint Dates** - Start and end dates for planning
+- **Documentation Checklist** - Complete task list with:
+  - Task names and descriptions
+  - Task completion status (Completed/Pending)
+  - Verification status (Verified/Not Verified)
+  - Visual status indicators with color coding
+
+Perfect for documentation teams to track user guides, API documentation, release notes, and other documentation deliverables.
 
 ## View Types
 
@@ -101,6 +154,26 @@ Each sprint now includes a detailed member contributions table showing:
 [dmtp_sprint_roadmap status="active" view="roadmap"]
 ```
 
+### Marketing Team Tasks
+```
+[dmtp_sprint_marketing team="Marketing" count="5"]
+```
+
+### Documentation Team Tasks  
+```
+[dmtp_sprint_documentation team="Documentation" status="active"]
+```
+
+### Marketing Tasks with Team Filter
+```
+[dmtp_sprint_marketing show_team_filter="true" count="8"]
+```
+
+### Current Sprint Documentation
+```
+[dmtp_sprint_documentation status="active" show_team_filter="false"]
+```
+
 ## Responsive Design
 
 The shortcode is fully responsive and adapts to different screen sizes:
@@ -163,7 +236,7 @@ You can customize the appearance by targeting these CSS classes:
 - Member tables are loaded but hidden by default for performance
 - Tables include responsive scrolling for better mobile experience
 
-## Interactive Features
+## ✨ **Interactive Features**
 
 ### **Member Contributions Table**
 Click the **"👥 View Team Contributions"** button in any sprint to see detailed member performance:
@@ -177,6 +250,20 @@ Click the **"🐛 View Sprint Hotfixes"** or **"🐛 View Hotfixes"** button to 
 - Team-wise hotfix breakdown
 - Total hotfixes count per team
 - Comprehensive hotfix tracking across sprint teams
+
+### **Marketing Tasks Table**
+Click the **"📈 View Marketing Tasks"** or **"📈 Marketing"** button to see marketing task tracking:
+- Task name with detailed descriptions
+- Task completion status (Completed/Pending)
+- Verification status (Verified/Not Verified)
+- Visual status indicators with color coding
+
+### **Documentation Tasks Table**
+Click the **"📚 View Documentation Tasks"** or **"📚 Documentation"** button to see documentation task tracking:
+- Task name with detailed descriptions  
+- Task completion status (Completed/Pending)
+- Verification status (Verified/Not Verified)
+- Visual status indicators with color coding
 
 ### **Team Filtering**
 When `show_team_filter="true"` is set, users can filter sprints by team using the dropdown.
@@ -238,4 +325,28 @@ Shows only currently active sprints in an easy-to-scan card layout.
 - Screen reader friendly
 - High contrast support
 - Focus indicators
-- Semantic HTML structure 
+- Semantic HTML structure
+
+## Admin Interface Features
+
+### **Sprint Administration Tabs**
+The sprint editing interface includes the following tabs:
+
+1. **General** - Basic sprint information (dates, teams)
+2. **Teams** - Team member performance tracking
+3. **Hotfixes** - Sprint hotfix management and tracking
+4. **Notes** - Planning and retrospective notes
+5. **Marketing** ✨ *New* - Marketing task tracking with status and verification
+6. **Documentation** ✨ *New* - Documentation task tracking with status and verification
+
+### **Marketing Tab Features**
+- Add multiple marketing tasks with detailed descriptions
+- Track task completion status (checkbox)
+- Track verification status (checkbox)
+- Tasks display in frontend with visual status indicators
+
+### **Documentation Tab Features**  
+- Add multiple documentation tasks with detailed descriptions
+- Track task completion status (checkbox)
+- Track verification status (checkbox)
+- Tasks display in frontend with visual status indicators 
