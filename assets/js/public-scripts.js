@@ -462,26 +462,37 @@
             button.addEventListener('click', function() {
                 const memberIndex = this.getAttribute('data-member-index');
                 const notesRow = document.getElementById('dmtp-notes-row-' + memberIndex);
-                
-                if (notesRow) {
-                    if (notesRow.style.display === 'none' || notesRow.style.display === '') {
-                        // Show notes row
-                        notesRow.style.display = 'table-row';
-                        this.innerHTML = '👁️ Hide Notes';
-                        this.classList.add('active');
-                        
-                        // Add slide-down animation
-                        notesRow.style.opacity = '0';
-                        setTimeout(function() {
-                            notesRow.style.transition = 'opacity 0.3s ease';
-                            notesRow.style.opacity = '1';
-                        }, 10);
-                    } else {
-                        // Hide notes row
-                        notesRow.style.display = 'none';
-                        this.innerHTML = '📝 View Notes';
-                        this.classList.remove('active');
-                    }
+
+                // Find the closest table (sprint card/table wrapper)
+                const sprintTable = this.closest('table');
+                if (!sprintTable) return;
+
+                // Determine if this notes row is already open
+                const isOpen = notesRow && notesRow.style.display !== 'none' && notesRow.style.display !== '';
+
+                // Hide all notes rows and reset all buttons in this table
+                const allNotesRows = sprintTable.querySelectorAll('tr[id^="dmtp-notes-row-"]');
+                const allNotesBtns = sprintTable.querySelectorAll('.dmtp-view-notes-btn');
+                allNotesRows.forEach(function(row) {
+                    row.style.display = 'none';
+                    row.style.opacity = '';
+                });
+                allNotesBtns.forEach(function(btn) {
+                    btn.innerHTML = '📝 View Notes';
+                    btn.classList.remove('active');
+                });
+
+                // If it was not open, open it; if it was open, leave all closed
+                if (notesRow && !isOpen) {
+                    notesRow.style.display = 'table-row';
+                    this.innerHTML = '👁️ Hide Notes';
+                    this.classList.add('active');
+                    // Add slide-down animation
+                    notesRow.style.opacity = '0';
+                    setTimeout(function() {
+                        notesRow.style.transition = 'opacity 0.3s ease';
+                        notesRow.style.opacity = '1';
+                    }, 10);
                 }
             });
         });

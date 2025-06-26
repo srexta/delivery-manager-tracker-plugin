@@ -10,7 +10,7 @@
  * Plugin Name:       Delivery Manager Tracking Plugin
  * Plugin URI:        https://example.com/delivery-manager-tracking-plugin
  * Description:       A plugin for delivery managers to track sprints, story points, estimated hours, hotfixes, and individual developer velocity.
- * Version:           1.0.0
+ * Version:           1.0.1
  * Author:            Developer
  * Author URI:        https://example.com
  * Text Domain:       delivery-manager-tracking-plugin
